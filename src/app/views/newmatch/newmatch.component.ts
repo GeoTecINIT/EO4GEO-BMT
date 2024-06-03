@@ -15,12 +15,13 @@ import { AngularFireStorage } from '@angular/fire/storage';
 import { finalize } from 'rxjs/operators';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Chart } from 'chart.js';
-import * as pdfjs from 'pdfjs-dist/es5/build/pdf';
-import { pdfjsworker } from 'pdfjs-dist/es5/build/pdf.worker.entry';
+import * as pdfjs from 'pdfjs-dist/build/pdf';
+import { pdfjsworker } from 'pdfjs-dist/build/pdf.worker.entry';
 import { BokService } from '../../services/bok.service';
 import { LoginComponent } from '../login/login.component';
-import * as bok from '@eo4geo/bok-dataviz';
+import * as bok from '@eo4geo/find-in-bok-dataviz';
 import { ModalDirective } from 'ngx-bootstrap/modal';
+import { environment } from '../../../environments/environment';
 
 
 @Component({
@@ -241,7 +242,12 @@ export class NewmatchComponent implements OnInit {
 
   ngOnInit() {
     this.getMode();
-    bok.visualizeBOKData('#bubbles', '#textBoK');
+    const inputObject = {
+      svgId: '#bubbles',
+      textId: '#textBoK',
+      urls: environment.URL_ARRAY
+    };
+    bok.visualizeBOKData(inputObject);
   }
 
   saveMatch() {
