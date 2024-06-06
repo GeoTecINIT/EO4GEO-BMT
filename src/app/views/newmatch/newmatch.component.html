@@ -981,7 +981,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title">Select concepts from BoK to be used in the match.</h4>
-        <button type="button" class="close" (click)="bokModal.hide(); checkClosedModals()" aria-label="Close">
+        <button type="button" class="close" (click)="bokModal.hide()" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -1055,7 +1055,7 @@
                 <!--      <input type="checkbox" style="margin-left: 10px; margin-top: 10px;" [(ngModel)]="selectAllChildren" />
                 Select all subconcepts -->
                 <button type="button" class="btn btn-danger" style="float: right"
-                  (click)="bokModal.hide(); checkClosedModals()">Finish</button>
+                  (click)="bokModal.hide()">Finish</button>
               </div>
 
               <div class="col-lg-6 col-sm-6">
@@ -1094,7 +1094,7 @@
                   </div>
                 </div>
                 <br>
-                <h5 [hidden]="currentConcept == '' && currentConcept != 'GIST'">Knowledge</h5>
+                <h5 [hidden]="currentConcept == ''">Knowledge</h5>
                 <div #textBoK id="textBoK" [hidden]="hasResults">
                 </div>
                 <div class="col" *ngIf="hasResults">
@@ -1145,7 +1145,7 @@
           selected {{bokConcepts2.length}} concepts, continue selecting and close BoK window when finished. </p>
 
         <button type="button" class="btn btn-primary" (click)="addBokKnowledge()"> Select </button>
-        <button type="button" class="btn btn-danger" (click)="bokModal.hide(); checkClosedModals()">Finish</button>
+        <button type="button" class="btn btn-danger" (click)="bokModal.hide()">Finish</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -1157,7 +1157,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title">Subconcepts included in {{customBokModalConcept}}</h4>
-        <button type="button" class="close" (click)="customBokModal.hide(); checkClosedModals()" aria-label="Close">
+        <button type="button" class="close" (click)="customBokModal.hide()" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -1184,7 +1184,7 @@
 
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-danger" (click)="customBokModal.hide(); checkClosedModals()">Close</button>
+        <button type="button" class="btn btn-danger" (click)="customBokModal.hide()">Close</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
