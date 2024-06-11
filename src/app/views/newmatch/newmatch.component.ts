@@ -22,6 +22,7 @@ import { LoginComponent } from '../login/login.component';
 import * as bok from '@eo4geo/find-in-bok-dataviz';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { environment } from '../../../environments/environment';
+import { DijkstraService } from '../../services/dijkstra.service';
 
 
 @Component({
@@ -205,7 +206,8 @@ export class NewmatchComponent implements OnInit {
     // private cd: ChangeDetectorRef,
     private storage: AngularFireStorage,
     public bokService: BokService,
-    private modalService: BsModalService
+    private modalService: BsModalService,
+    private dijkstraService: DijkstraService,
 
   ) {
     this.isAnonymous = true;
@@ -656,149 +658,65 @@ export class NewmatchComponent implements OnInit {
     if (this.bokConcepts1.length > 0 || this.bokConcepts2.length > 0) {
       this.notMatchConcepts1 = [];
       this.notMatchConcepts2 = [];
-      this.conceptsName = [];
-      const bok1Codes = [];
-      const bok2Codes = [];
 
-      // retrieve all codes
-      this.bokConcepts1.forEach(bok1 => {
-        bok1Codes.push(bok1.code);
-        if (bok1.allChildren) {
-          bok1.allChildren.forEach(bok1Ch => {
-            bok1Codes.push(bok1Ch.code);
-          });
-        }
-      });
-      this.bokConcepts2.forEach(bok2 => {
-        bok2Codes.push(bok2.code);
-        if (bok2.allChildren) {
-          bok2.allChildren.forEach(bok2Ch => {
-            bok2Codes.push(bok2Ch.code);
-          });
-        }
+      // Create distanceMaps
+      const distancesMap1: Map<string, Map<string, number>> = new Map();
+      this.bokConcepts1.forEach(value => {
+        distancesMap1.set(value.code, this.dijkstraService.getDistanceMap(value.code, 0));
       });
 
-      // compare bok1
-      this.bokConcepts1.forEach(bok1 => {
-        if (bok1.allChildren && bok1.allChildren.length > 0) {
-          let foundAllCh = true;
-          const bok1Found = { code: bok1.code, name: bok1.name, allChildren: [] };
-          const bok1NotFound = { code: bok1.code, name: bok1.name, allChildren: [] };
-          bok1.allChildren.forEach(bok1Ch => {
-            if (bok2Codes.indexOf(bok1Ch.code) > -1) {
-              bok1Found.allChildren.push(bok1Ch);
-            } else {
-              bok1NotFound.allChildren.push(bok1Ch);
-              foundAllCh = false;
-            }
-          });
-          // all children found
-          if (foundAllCh) {
-            this.commonBokConcepts.push(bok1); // include children
-          } else {
-            // not all children found
-            if (bok1Found.allChildren.length > 0) {
-              this.commonBokConcepts.push(bok1Found);
-            }
-            if (bok1NotFound.allChildren.length > 0) {
-              this.notMatchConcepts1.push(bok1NotFound);
-            }
-          }
+      const distancesMap2: Map<string, Map<string, number>> = new Map();
+      this.bokConcepts2.forEach(value => {
+        if (!distancesMap1.has(value.code)){
+          distancesMap2.set(value.code, this.dijkstraService.getDistanceMap(value.code, 0));
         } else {
-          // no children included
-          if (bok2Codes.indexOf(bok1.code) > -1) {
-            this.commonBokConcepts.push(bok1);
-          } else {
-            this.notMatchConcepts1.push(bok1);
-          }
+          distancesMap2.set(value.code, distancesMap1.get(value.code));
         }
       });
 
-      // compare bok2
-      this.bokConcepts2.forEach(bok2 => {
-        // concept is in bok2
-        if (bok2.allChildren && bok2.allChildren.length > 0) {
-          let foundAllCh2 = true;
-          const bok2Found = { code: bok2.code, name: bok2.name, allChildren: [] };
-          const bok2NotFound = { code: bok2.code, name: bok2.name, allChildren: [] };
-          bok2.allChildren.forEach(bok2Ch => {
-            if (bok1Codes.indexOf(bok2Ch.code) > -1) {
-              bok2Found.allChildren.push(bok2Ch);
-            } else {
-              bok2NotFound.allChildren.push(bok2Ch);
-              foundAllCh2 = false;
-            }
-          });
-          // all children found
-          if (foundAllCh2) {
-            this.commonBokConcepts.push(bok2); // include children
-          } else {
-            // not all children found
-            if (bok2Found.allChildren.length > 0) {
-              this.commonBokConcepts.push(bok2Found);
-            }
-            if (bok2NotFound.allChildren.length > 0) {
-              this.notMatchConcepts1.push(bok2NotFound);
-            }
-          }
+      // Check matching between concepts and distanceMaps
+      const matchMap: Map<string, number> = new Map();
+      this.bokConcepts1.forEach(value => {
+        if (distancesMap2.has(value.code)) {
+          matchMap.set(value.code, distancesMap1.get(value.code).get(value.code));
         } else {
-          // no children included
-          if (bok1Codes.indexOf(bok2.code) > -1) {
-            this.commonBokConcepts.push(bok2);
-          } else {
-            this.notMatchConcepts2.push(bok2);
-          }
-        }
-      });
-
-      /*const removeDuplicatesCommon = [];
-
-      // get all codes included in a concept
-      this.commonBokConcepts.forEach(bokCom => {
-        // bokCom.allCodes ? bokCom.allCodes.push(bokCom.code) : bokCom.allCodes = [];
-        bokCom.allCodes = [];
-        if (bokCom.allChildren) {
-          bokCom.allChildren.forEach(bokComCh => {
-            bokCom.allCodes.push(bokComCh.code);
-          });
-        }
-      });
-      let foundAllCh = true;
-      // check for duplicates in common
-      this.commonBokConcepts.forEach(bokCom => {
-        if (bokCom.allChildren && bokCom.allChildren.length === 0) {
-          // Alone concepts
-          removeDuplicatesCommon.push(bokCom);
-        } else {
-          this.commonBokConcepts.forEach(bokComB => {
-            if (bokCom.code !== bokComB.code) {
-              if (bokCom.allCodes.indexOf(bokComB.code) > -1) { // B concept is in bokCom
-                foundAllCh = true;
-                if (bokComB.allChildren && bokComB.allChildren.length === 0) {
-                  bokComB.allChildren.forEach(bokComBCh => {
-                    if (bokCom.allCodes.indexOf(bokComBCh.code) === -1) { // check all children of B concept
-                      foundAllCh = false;
-                    }
-                  });
-                }
-                if (foundAllCh) { // all children in bokComB are in BokCom
-                  removeDuplicatesCommon.push(bokCom);
-                }
+          distancesMap2.forEach((map: Map<string, number>) => {
+            if(map.has(value.code)) {
+              const newDistance: number = map.get(value.code);
+              if(!matchMap.has(value.code) || matchMap.get(value.code) < newDistance){
+                matchMap.set(value.code, newDistance);
               }
             }
           });
         }
-      });
-*/
-      const removeDuplicatesCommon = [];
-      const removeDuplicatesCommonCodes = [];
-      this.commonBokConcepts.forEach(bokCom => {
-        if (removeDuplicatesCommonCodes.indexOf(bokCom.code) === -1) {
-          removeDuplicatesCommon.push(bokCom);
-          removeDuplicatesCommonCodes.push(bokCom.code);
+        if(!matchMap.has(value.code)){
+          this.notMatchConcepts1.push(value);
         }
       });
-      this.commonBokConcepts = removeDuplicatesCommon;
+
+      this.bokConcepts2.forEach(value => {
+        if (distancesMap1.has(value.code)) {
+          matchMap.set(value.code, distancesMap1.get(value.code).get(value.code));
+        } else {
+          distancesMap1.forEach((map: Map<string, number>) => {
+            if(map.has(value.code)) {
+              const newDistance: number = map.get(value.code);
+              if(!matchMap.has(value.code) || matchMap.get(value.code) < newDistance){
+                matchMap.set(value.code, newDistance);
+              }
+            }
+          });
+        }
+        if(!matchMap.has(value.code)){
+          this.notMatchConcepts2.push(value);
+        }
+      });
+
+      matchMap.forEach((value: number, key: string) => {
+        const concept = this.bokService.getConceptInfoByCode(key);
+        concept.name = '['+ key +'] ' + concept.name;
+        this.commonBokConcepts.push(concept);
+      })
 
       this.commonBokConcepts.sort((a, b) => (a.code > b.code) ? 1 : -1);
 
