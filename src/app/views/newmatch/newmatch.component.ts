@@ -75,6 +75,7 @@ export class NewmatchComponent implements OnInit {
   notMatchConcepts1 = [];
   notMatchConcepts2 = [];
   partialMatchConcepts = [];
+  matchingFlexibility = 2;
 
   skills1 = [];
   skills2 = [];
@@ -660,13 +661,13 @@ export class NewmatchComponent implements OnInit {
       // Create distanceMaps
       const distancesMap1: Map<string, Map<string, number>> = new Map();
       this.bokConcepts1.forEach(value => {
-        distancesMap1.set(value.code, this.dijkstraService.getDistanceMap(value.code, 2));
+        distancesMap1.set(value.code, this.dijkstraService.getDistanceMap(value.code, this.matchingFlexibility));
       });
 
       const distancesMap2: Map<string, Map<string, number>> = new Map();
       this.bokConcepts2.forEach(value => {
         if (!distancesMap1.has(value.code)){
-          distancesMap2.set(value.code, this.dijkstraService.getDistanceMap(value.code, 2));
+          distancesMap2.set(value.code, this.dijkstraService.getDistanceMap(value.code, this.matchingFlexibility));
         } else {
           distancesMap2.set(value.code, distancesMap1.get(value.code));
         }

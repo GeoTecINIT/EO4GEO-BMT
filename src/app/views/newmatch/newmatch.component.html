@@ -9,7 +9,7 @@
             <div class="col-sm-2 col-md-2">
               <p *ngIf="userOrgs.length > 0" class="text-primary text-right">Save under organization </p>
             </div>
-            <div class="col-sm-4 col-md-4">
+            <div class="col-sm-2 col-md-2">
               <ng-select *ngIf="userOrgs.length > 0 && userOrgs.length == currentUser.organizations.length"
                 [items]="userOrgs" name="userOrgs" bindLabel="name" [multiple]="false" [(ngModel)]="saveOrg"
                 (change)="loadDivisions()">
@@ -21,6 +21,12 @@
                 class="btn btn-block btn-link text-secondary" routerLink="/organization">
                 &nbsp;You need to join or create an organization before you can save an occupational profile.
               </button>
+            </div>
+            <div class="col-sm-2 col-md-2">
+              <p class="text-primary text-right">Matching flexibility</p>
+            </div>
+            <div class="col-sm-2 col-md-2">
+              <input type="range" class="form-range" min="0" max="4"  [(ngModel)]="matchingFlexibility">
             </div>
             <div class="col-sm-2 col-md-2">
               <p *ngIf="userOrgs.length > 0" class="text-primary text-right">Division </p>
