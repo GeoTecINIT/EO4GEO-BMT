@@ -42,7 +42,6 @@ import { BokService } from "./bok.service";
                 });
             }
           }
-        
           return distances
     }
 
@@ -83,9 +82,9 @@ import { BokService } from "./bok.service";
         if (!start) throw new Error('Invalid concept');
         const distanceMap: Map<string, number> = this.dijkstra(start, threshold);
         distanceMap.forEach( (value: number, key: string, map: Map<string, number>) => {
-            const percentage = Math.trunc((1 - (value / threshold)) * 100);
+            const percentage = threshold === 0 ? 100 : Math.trunc((1 - (value / threshold)) * 100);
             map.set(key, percentage);
-        } )
+        })
         return distanceMap;
     }
   }

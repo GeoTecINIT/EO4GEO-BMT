@@ -74,6 +74,7 @@ export class NewmatchComponent implements OnInit {
   commonBokConcepts = [];
   notMatchConcepts1 = [];
   notMatchConcepts2 = [];
+  partialMatchConcepts = [];
 
   skills1 = [];
   skills2 = [];
@@ -654,17 +655,18 @@ export class NewmatchComponent implements OnInit {
     if (this.bokConcepts1.length > 0 || this.bokConcepts2.length > 0) {
       this.notMatchConcepts1 = [];
       this.notMatchConcepts2 = [];
+      this.partialMatchConcepts = [];
 
       // Create distanceMaps
       const distancesMap1: Map<string, Map<string, number>> = new Map();
       this.bokConcepts1.forEach(value => {
-        distancesMap1.set(value.code, this.dijkstraService.getDistanceMap(value.code, 0));
+        distancesMap1.set(value.code, this.dijkstraService.getDistanceMap(value.code, 2));
       });
 
       const distancesMap2: Map<string, Map<string, number>> = new Map();
       this.bokConcepts2.forEach(value => {
         if (!distancesMap1.has(value.code)){
-          distancesMap2.set(value.code, this.dijkstraService.getDistanceMap(value.code, 0));
+          distancesMap2.set(value.code, this.dijkstraService.getDistanceMap(value.code, 2));
         } else {
           distancesMap2.set(value.code, distancesMap1.get(value.code));
         }
@@ -709,9 +711,15 @@ export class NewmatchComponent implements OnInit {
       });
 
       matchMap.forEach((value: number, key: string) => {
+        
         const concept = this.bokService.getConceptInfoByCode(key);
         concept.name = '['+ key +'] ' + concept.name;
-        this.commonBokConcepts.push(concept);
+        if (value === 100) {
+          this.commonBokConcepts.push(concept);
+        } else {
+          concept.partialMatch = value;
+          this.partialMatchConcepts.push(concept);
+        }
       })
 
       this.commonBokConcepts.sort((a, b) => (a.code > b.code) ? 1 : -1);
