@@ -16,7 +16,6 @@ import { finalize } from 'rxjs/operators';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Chart } from 'chart.js';
 import * as pdfjs from 'pdfjs-dist/build/pdf';
-import { pdfjsworker } from 'pdfjs-dist/build/pdf.worker.entry';
 import { BokService } from '../../services/bok.service';
 import { LoginComponent } from '../login/login.component';
 import * as bok from '@eo4geo/find-in-bok-dataviz';
@@ -182,9 +181,6 @@ export class NewmatchComponent implements OnInit {
   currentConcept = 'GIST';
 
   customSelect = 0;
-
-  selectAllChildren = false;
-  allChildren = [];
   buttonClear = 0;
   isLoaded = false;
 
@@ -1198,20 +1194,6 @@ export class NewmatchComponent implements OnInit {
           i = numConcepts[parent] !== undefined ? numConcepts[parent] + 1 : 1;
           numConcepts[parent] = i;
         }
-        if (bok1.allChildren) {
-          bok1.allChildren.forEach(bok1Ch => {
-            //  let parent = '';
-            if (bok1Ch.code) {
-              parent = this.getParent(bok1Ch.code);
-            } else {
-              parent = this.getParent(bok1Ch);
-            }
-            if (this.kaCodes[parent] !== undefined) {
-              i = numConcepts[parent] !== undefined ? numConcepts[parent] + 1 : 1;
-              numConcepts[parent] = i;
-            }
-          });
-        }
       }
     });
     return numConcepts;
@@ -1325,14 +1307,6 @@ export class NewmatchComponent implements OnInit {
     }
   }
 
-  allDescendants(node) {
-    for (let i = 0; i < node.children.length; i++) {
-      const child = node.children[i];
-      this.allChildren.push({ code: node.children[i].code, name: '[' + node.children[i].code + '] ' + node.children[i].name });
-      this.allDescendants(child);
-    }
-  }
-
   addBokKnowledge() {
     this.getRelations();
     this.conceptsName = [];
@@ -1341,19 +1315,9 @@ export class NewmatchComponent implements OnInit {
       .textContent;
     const conceptId = concept.split(']')[0].substring(1);
 
-    this.allChildren = [];
-    if (this.selectAllChildren) {
-      const node = this.getNode(conceptId);
-      this.allDescendants(node);
-    }
-
     if (this.customSelect === 1) {
       this.notMatchConcepts1 = [];
-      this.bokConcepts1.push({ code: conceptId, name: concept, allChildren: this.allChildren });
-      // Adds all children to array of displayed concepts
-      /*   this.allChildren.forEach(child => {
-          this.bokConcepts1.push({ code: child.code, name: child.name });
-        }); */
+      this.bokConcepts1.push({ code: conceptId, name: concept});
       if (this.resource1 == null || this.resource1.name !== 'Custom selection') {
         this.resource1 = { name: 'Custom selection', concepts: [] };
       }
@@ -1361,11 +1325,7 @@ export class NewmatchComponent implements OnInit {
 
     } else {
       this.notMatchConcepts2 = [];
-      this.bokConcepts2.push({ code: conceptId, name: concept, allChildren: this.allChildren });
-      // Adds all children to array of displayed concepts
-      /* this.allChildren.forEach(child => {
-        this.bokConcepts2.push({ code: child.code, name: child.name });
-      }); */
+      this.bokConcepts2.push({ code: conceptId, name: concept});
       if (this.resource2 == null || this.resource2.name !== 'Custom selection') {
         this.resource2 = { name: 'Custom selection', concepts: [] };
       }

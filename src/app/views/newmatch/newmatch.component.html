@@ -285,9 +285,6 @@
                     <a (click)="removeCustomConcept1(mk)"> <i class="fa fa-close"></i> </a>
                     <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                       {{mk.name}} </a>
-                    <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                      (click)="customBokModal.show(); loadCustomModal(mk, true)"> [+ {{mk.allChildren.length}}
-                      Subconcepts]</span>
                   </button>
                 </div>
                 <br>
@@ -525,9 +522,6 @@
                     <a (click)="removeCustomConcept2(mk)"> <i class="fa fa-close"></i> </a>
                     <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                       {{mk.name}} </a>
-                    <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                      (click)="customBokModal.show(); loadCustomModal(mk, true)">[+ {{mk.allChildren.length}}
-                      Subconcepts]</span>
                   </button>
                 </div>
                 <br>
@@ -635,9 +629,6 @@
                     <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                       {{ mk.name}}
                     </a>
-                    <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                      (click)="customBokModal.show(); loadCustomModal(mk, false)">[+ {{mk.allChildren.length}}
-                      Subconcepts]</span>
                   </button>
                 </div>
                 <div class="col-md-4 ma">
@@ -766,9 +757,6 @@
                           <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                             {{mk.name}}
                           </a>
-                          <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                            (click)="customBokModal.show(); loadCustomModal(mk, false)">[+ {{mk.allChildren.length}}
-                            Subconcepts]</span>
                         </button>
                       </div>
                     </div>
@@ -792,9 +780,6 @@
                           <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                             {{mk.name}}
                           </a>
-                          <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                            (click)="customBokModal.show(); loadCustomModal(mk, false)">[+ {{mk.allChildren.length}}
-                            Subconcepts]</span>
                         </button>
                       </div>
                     </div>
@@ -1044,9 +1029,6 @@
                     <a (click)="removeCustomConcept1(mk)"> <i class="fa fa-close"></i> </a>
                     <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                       {{mk.name}} </a>
-                    <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                      (click)="customBokModal.show(); loadCustomModal(mk, true)">[+ {{mk.allChildren.length}}
-                      Subconcepts]</span>
                   </button>
                 </div>
                 <div
@@ -1057,9 +1039,6 @@
                     <a (click)="removeCustomConcept2(mk)"> <i class="fa fa-close"></i> </a>
                     <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                       {{mk.name}} </a>
-                    <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                      (click)="customBokModal.show(); loadCustomModal(mk, true)">[+ {{mk.allChildren.length}}
-                      Subconcepts]</span>
                   </button>
                 </div>
               </div>
@@ -1091,32 +1070,11 @@
               <div class="col-lg-6 col-sm-6 text-left">
                 <button type="button" class="btn btn-primary" style="float: left" (click)="addBokKnowledge()"> Select
                 </button>
-                <!--      <input type="checkbox" style="margin-left: 10px; margin-top: 10px;" [(ngModel)]="selectAllChildren" />
-                Select all subconcepts -->
                 <button type="button" class="btn btn-danger" style="float: right"
                   (click)="bokModal.hide()">Finish</button>
               </div>
 
               <div class="col-lg-6 col-sm-6">
-                <!--              <div class="row text-center mb-1">
-                  <div class="col-md-8">
-                    <div class="input-group">
-                      <div class="input-group-prepend" dropdown>
-                        <button type="button" class="btn btn-primary">
-                          <i class="fa fa-search"></i>
-                        </button>
-                      </div>
-                      <input #searchInput type="text" id="input-competence-filter" name="input-competence-filter"
-                        class="form-control" [(ngModel)]="searchInputField" (keyup)="searchInBok(searchInput.value)"
-                        placeholder="Search Knowledge" />
-                    </div>
-                  </div>
-                  <div class="col-md-2" style="margin-right: 0;margin-left: auto;">
-                    <button type="button" class="btn btn-primary" (click)="addBokKnowledge()"> Select </button>
-                  </div>
-                  <div class="col-md-2" style="margin-right: 0;margin-left: auto;">
-                    <button type="button" class="btn btn-danger" (click)="bokModal.hide()">Finish</button> </div>
-                </div> -->
                 <div id="bubbles">
                 </div>
               </div>
@@ -1213,8 +1171,6 @@
                   <a *ngIf="isAbleToEditModal" (click)="removeCustomSubConcept(mk)"> <i class="fa fa-close"></i> </a>
                   <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                     {{mk.name}} </a>
-                  <!--  <span *ngIf="mk.allChildren && mk.allChildren.length > 0">[+ {{mk.allChildren.length}}
-                    Subconcepts]</span> -->
                 </button>
               </div>
             </div>
