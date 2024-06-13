@@ -712,18 +712,21 @@ export class NewmatchComponent implements OnInit {
       });
 
       matchMap.forEach((value: number, key: string) => {
-        
-        const concept = this.bokService.getConceptInfoByCode(key);
-        concept.name = '['+ key +'] ' + concept.name;
+        const code = key === 'GIST' ? 'GI' : key;
+        const concept = this.bokService.getConceptInfoByCode(code);
+
+        if (concept.name[0] !== '[') concept.name = '['+ key +'] ' + concept.name;
+
         if (value === 100) {
           this.commonBokConcepts.push(concept);
         } else {
           concept.partialMatch = value;
           this.partialMatchConcepts.push(concept);
         }
-      })
+      });
 
       this.commonBokConcepts.sort((a, b) => (a.code > b.code) ? 1 : -1);
+      this.partialMatchConcepts.sort((a, b) => (a.code > b.code) ? 1 : -1);
 
       this.notMatchConcepts1.sort((a, b) => (a.code > b.code) ? 1 : -1);
       this.notMatchConcepts2.sort((a, b) => (a.code > b.code) ? 1 : -1);
@@ -1194,7 +1197,11 @@ export class NewmatchComponent implements OnInit {
     conceptsToAnalize.forEach(bok1 => {
       let parent = '';
       if (bok1.code) {
-        parent = this.getParent(bok1.code);
+        if (bok1.code === 'GIST') {
+          parent = this.getParent('GI');
+        } else {
+          parent = this.getParent(bok1.code);
+        }
       } else {
         parent = this.getParent(bok1);
       }

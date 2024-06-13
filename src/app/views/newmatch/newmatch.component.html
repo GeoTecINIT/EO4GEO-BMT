@@ -6,10 +6,10 @@
 
         <div class="card-header">
           <div class="row">
-            <div class="col-sm-2 col-md-2">
+            <div class="col">
               <p *ngIf="userOrgs.length > 0" class="text-primary text-right">Save under organization </p>
             </div>
-            <div class="col-sm-2 col-md-2">
+            <div class="col">
               <ng-select *ngIf="userOrgs.length > 0 && userOrgs.length == currentUser.organizations.length"
                 [items]="userOrgs" name="userOrgs" bindLabel="name" [multiple]="false" [(ngModel)]="saveOrg"
                 (change)="loadDivisions()">
@@ -22,16 +22,10 @@
                 &nbsp;You need to join or create an organization before you can save an occupational profile.
               </button>
             </div>
-            <div class="col-sm-2 col-md-2">
-              <p class="text-primary text-right">Matching flexibility</p>
-            </div>
-            <div class="col-sm-2 col-md-2">
-              <input type="range" class="form-range" min="0" max="4"  [(ngModel)]="matchingFlexibility">
-            </div>
-            <div class="col-sm-2 col-md-2">
+            <div class="col">
               <p *ngIf="userOrgs.length > 0" class="text-primary text-right">Division </p>
             </div>
-            <div class="col-sm-2 col-md-2">
+            <div class="col">
               <ng-select *ngIf="userDivisions.length > 0" [items]="userDivisions" name="userDivisions" bindLabel="name"
                 [multiple]="false" [(ngModel)]="saveDiv">
                 <ng-template ng-optgroup-tmp let-item="item">
@@ -39,7 +33,13 @@
                 </ng-template>
               </ng-select>
             </div>
-            <div class="col-sm-2 col-md-2 text-right">
+            <div class="col">
+              <p class="text-primary text-right">Matching flexibility</p>
+            </div>
+            <div class="col">
+              <input type="range" class="form-range" min="0" max="4"  [(ngModel)]="matchingFlexibility" (ngModelChange)="match()">
+            </div>
+            <div class="col text-right">
               <button type="submit" class="btn btn-pill btn-primary" (click)="saveMatch()" routerLink="/list"
                 *ngIf="!isAnonymous && (model.title != '' && model.description != '' )">
                 Save
