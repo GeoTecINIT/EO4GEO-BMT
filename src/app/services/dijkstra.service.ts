@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { TreeNode } from "../model/treeNode.model";
+import { RelationType, TreeNode, TreeRelation } from "../model/treeNode.model";
 import { PriorityQueue } from "../model/priorityQueue.model";
 import { BokService } from "./bok.service";
 
@@ -31,13 +31,13 @@ import { BokService } from "./bok.service";
     
             const node: TreeNode | undefined = this.graph.get(code);
             if (node) {
-                node.relations.forEach(([child, weight]) => {
+                node.relations.forEach(({target, weight}) => {
                     const newDistance: number = currDistance + weight;
-                    const childDistance: number = (distances.get(child) !== undefined) ? distances.get(child) : Infinity;
+                    const targetDistance: number = (distances.get(target) !== undefined) ? distances.get(target) : Infinity;
     
-                    if (newDistance < childDistance && newDistance < threshold) {
-                        priorityQueue.increasePriority(child, weight);
-                        distances.set(child, newDistance);
+                    if (newDistance < targetDistance && newDistance < threshold) {
+                        priorityQueue.increasePriority(target, weight);
+                        distances.set(target, newDistance);
                     }
                 });
             }
@@ -59,16 +59,16 @@ import { BokService } from "./bok.service";
             if (sourceNode && targetNode) {
                 switch (relation.name) {
                     case 'is subconcept of':
-                        sourceNode.relations.push([targetCode, 1.5]);
-                        targetNode.relations.push([sourceCode, 1]);
+                        sourceNode.relations.push(new TreeRelation(targetCode, RelationType.IsSubconceptOf));
+                        targetNode.relations.push(new TreeRelation(sourceCode, RelationType.IsSuperconceptOf));
                         break;
                     case 'is prerequisite of':
-                        sourceNode.relations.push([targetCode, 0.7]);
-                        targetNode.relations.push([sourceCode, 1]);
+                        sourceNode.relations.push(new TreeRelation(targetCode, RelationType.IsPrerequisiteOf));
+                        targetNode.relations.push(new TreeRelation(sourceCode, RelationType.HasPrerequisite));
                         break;
                     case 'is similar to':
-                        sourceNode.relations.push([targetCode, 1]);
-                        targetNode.relations.push([sourceCode, 1]);
+                        sourceNode.relations.push(new TreeRelation(targetCode, RelationType.IsSimilarTo));
+                        targetNode.relations.push(new TreeRelation(sourceCode, RelationType.IsSimilarTo));
                         break;
                 }
             }
