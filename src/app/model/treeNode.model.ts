@@ -11,9 +11,11 @@ class TreeNode {
 class TreeRelation {
     target: string;
     readonly weight: number;
+    type: RelationType;
 
     constructor(target: string, type: RelationType) {
         this.target = target;
+        this.type = type;
         switch (type) {
             case RelationType.IsSubconceptOf:
                 this.weight = 1.5;
@@ -30,6 +32,9 @@ class TreeRelation {
             case RelationType.HasPrerequisite:
                 this.weight = 1;
                 break;
+            case RelationType.GIST:
+                this.weight = 2;
+                break;
             default:
                 this.weight = 1;
         }
@@ -41,7 +46,8 @@ enum RelationType {
     IsSuperconceptOf = "is superconcept of",
     IsSimilarTo = "is similar to",
     IsPrerequisiteOf = "is prerequisite of",
-    HasPrerequisite = "has prerequisite"
+    HasPrerequisite = "has prerequisite",
+    GIST = "GIST"
 }
 
 export {TreeNode, TreeRelation, RelationType}

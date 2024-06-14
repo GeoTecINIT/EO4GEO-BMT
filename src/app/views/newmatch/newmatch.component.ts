@@ -22,6 +22,7 @@ import * as bok from '@eo4geo/find-in-bok-dataviz';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { environment } from '../../../environments/environment';
 import { DijkstraService } from '../../services/dijkstra.service';
+import { RelationType, TreeNode, TreeRelation } from '../../model/treeNode.model';
 
 
 @Component({
@@ -713,9 +714,7 @@ export class NewmatchComponent implements OnInit {
 
       matchMap.forEach((value: number, key: string) => {
         if (value === 100) {
-          const code = key === 'GIST' ? 'GI' : key;
-          const concept = this.bokService.getConceptInfoByCode(code);
-
+          const concept = this.bokService.getConceptInfoByCode(key);
           if (concept.name[0] !== '[') concept.name = '['+ key +'] ' + concept.name;
 
           this.commonBokConcepts.push(concept);
@@ -806,7 +805,7 @@ export class NewmatchComponent implements OnInit {
         tempTotal++;
       });
       Object.keys(tempStats).forEach(k => {
-        const nameKA = k + ' - ' + this.kaCodes[k];
+        const nameKA = k + ' - ' + this.kaCodes[k === 'GIST' ? 'GI' : k];
         this.statisticsMatching.push({ code: nameKA, value: Math.round(tempStats[k] * 100 / tempTotal), count: tempStats[k] });
       });
       this.graphStatistics(this.statisticsMatching, 'myChart');
@@ -834,15 +833,7 @@ export class NewmatchComponent implements OnInit {
         tempTotal2++;
       });
       Object.keys(tempStats2).forEach(k => {
-        let nameKA = '';
-        if (this.kaCodes[k] !== undefined) {
-          nameKA = k + ' - ' + this.kaCodes[k];
-        } else {
-          const nameConcept = this.conceptsName[k];
-          if (nameConcept) {
-            nameKA = k + ' - ' + nameConcept.split(']')[1];
-          }
-        }
+        const nameKA = k + ' - ' + this.kaCodes[k === 'GIST' ? 'GI' : k];
         this.statisticsNotMatching1.push({ code: nameKA, value: Math.round(tempStats2[k] * 100 / tempTotal2), count: tempStats2[k] });
       });
       const tempStats3 = {};
@@ -859,13 +850,7 @@ export class NewmatchComponent implements OnInit {
         tempTotal3++;
       });
       Object.keys(tempStats3).forEach(k => {
-        let nameKA = '';
-        if (this.kaCodes[k] !== undefined) {
-          nameKA = k + ' - ' + this.kaCodes[k];
-        } else if (this.conceptsName[k] !== undefined) {
-          const nameConcept = this.conceptsName[k];
-          nameKA = k + ' - ' + nameConcept.split(']')[1];
-        }
+        const nameKA = k + ' - ' + this.kaCodes[k === 'GIST' ? 'GI' : k];
         this.statisticsNotMatching2.push({ code: nameKA, value: Math.round(tempStats3[k] * 100 / tempTotal3), count: tempStats3[k] });
       });
     }
@@ -1137,30 +1122,25 @@ export class NewmatchComponent implements OnInit {
   }
 
   getParent(concept) {
-    let parentCode = '';
-    let parentNode = [];
-    let res = '';
-    this.allConcepts.forEach(con => {
-      if (con.code === concept) {
-        parentNode = con;
-        if (parentNode['parent'] && parentNode['parent']['code'] && parentNode['parent']['code'] !== 'GIST') {
-          while (parentCode !== 'GIST' && parentNode['code'] !== 'GIST') {
-            if (parentNode['parent']['parent']) {
-              parentNode = parentNode['parent'];
-              parentCode = parentNode['parent']['code'];
-            } else {
-              parentCode = 'GIST';
-            }
+    let parents = new Set();
+
+    const findParents = (node: TreeNode) => {
+      for (let relation of node.relations) {
+        if (relation.type === RelationType.IsSubconceptOf) {
+          let parentNode = this.dijkstraService.getTreeNode(relation.target);
+          if (this.dijkstraService.knowledgeNodes.has(parentNode.code)) {
+            parents.add(parentNode.code);
+          } else {
+            findParents(parentNode);
           }
-        } else {
-          parentNode['code'] = con.code.slice(0, 2);
         }
       }
-    });
-    if (parentNode !== undefined) {
-      res = parentNode['code'] === 'GIST' ? concept : parentNode['code'];
     }
-    return res;
+
+    let currentNode = this.dijkstraService.getTreeNode(concept);
+    findParents(currentNode);
+    const firstParent = parents.values().next().value;
+    return firstParent ? firstParent : concept;
   }
 
 
@@ -1195,11 +1175,7 @@ export class NewmatchComponent implements OnInit {
     conceptsToAnalize.forEach(bok1 => {
       let parent = '';
       if (bok1.code) {
-        if (bok1.code === 'GIST') {
-          parent = this.getParent('GI');
-        } else {
-          parent = this.getParent(bok1.code);
-        }
+        parent = this.getParent(bok1.code);
       } else {
         parent = this.getParent(bok1);
       }

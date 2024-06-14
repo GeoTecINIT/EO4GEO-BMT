@@ -9,6 +9,10 @@ import { BokService } from "./bok.service";
   export class DijkstraService {
 
     private graph: Map<string, TreeNode>;
+    readonly knowledgeNodes = new Set(
+        ['AM', 'CF', 'CV', 'DA', 'DM', 'GC', 'GD', 'GS', 'IP', 'OI', 'PP', 'PS', 'TA', 'WB']
+    );
+    readonly mainNode = 'GIST';
 
     constructor(private readonly bokService: BokService) {}
 
@@ -59,7 +63,8 @@ import { BokService } from "./bok.service";
             if (sourceNode && targetNode) {
                 switch (relation.name) {
                     case 'is subconcept of':
-                        sourceNode.relations.push(new TreeRelation(targetCode, RelationType.IsSubconceptOf));
+                        const relationType = (targetCode === this.mainNode) ? RelationType.GIST : RelationType.IsSubconceptOf;
+                        sourceNode.relations.push(new TreeRelation(targetCode, relationType));
                         targetNode.relations.push(new TreeRelation(sourceCode, RelationType.IsSuperconceptOf));
                         break;
                     case 'is prerequisite of':
@@ -86,5 +91,9 @@ import { BokService } from "./bok.service";
             map.set(key, percentage);
         })
         return distanceMap;
+    }
+
+    public getTreeNode (code: string): TreeNode {
+        return this.graph.get(code);
     }
   }
