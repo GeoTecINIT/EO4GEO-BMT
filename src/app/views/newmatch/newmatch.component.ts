@@ -74,7 +74,8 @@ export class NewmatchComponent implements OnInit {
   commonBokConcepts = [];
   notMatchConcepts1 = [];
   notMatchConcepts2 = [];
-  partialMatchConcepts = [];
+  partialMatchConcepts1 = [];
+  partialMatchConcepts2 = [];
   matchingFlexibility = 2;
 
   skills1 = [];
@@ -656,7 +657,8 @@ export class NewmatchComponent implements OnInit {
     if (this.bokConcepts1.length > 0 || this.bokConcepts2.length > 0) {
       this.notMatchConcepts1 = [];
       this.notMatchConcepts2 = [];
-      this.partialMatchConcepts = [];
+      this.partialMatchConcepts1 = [];
+      this.partialMatchConcepts2 = [];
 
       // Create distanceMaps
       const distancesMap1: Map<string, Map<string, number>> = new Map();
@@ -673,60 +675,56 @@ export class NewmatchComponent implements OnInit {
         }
       });
 
-      // Check matching between concepts and distanceMaps
+      // Match concepts using distanceMaps
       const matchMap: Map<string, number> = new Map();
       this.bokConcepts1.forEach(value => {
-        if (distancesMap2.has(value.code)) {
-          matchMap.set(value.code, distancesMap1.get(value.code).get(value.code));
-        } else {
-          distancesMap2.forEach((map: Map<string, number>) => {
-            if(map.has(value.code)) {
-              const newDistance: number = map.get(value.code);
-              if(!matchMap.has(value.code) || matchMap.get(value.code) < newDistance){
-                matchMap.set(value.code, newDistance);
-              }
+        distancesMap2.forEach((map: Map<string, number>, key: string) => {
+          if(map.has(value.code)) {
+            const newDistance: number = map.get(value.code);
+            if(!matchMap.has(value.code) || matchMap.get(value.code) < newDistance){
+              matchMap.set(value.code, newDistance);
             }
-          });
-        }
+          }
+        });
         if(!matchMap.has(value.code)){
           this.notMatchConcepts1.push(value);
+        } else if (matchMap.get(value.code) !== 100) {
+          value.partialMatch = matchMap.get(value.code);
+          this.partialMatchConcepts1.push(value);
         }
       });
 
       this.bokConcepts2.forEach(value => {
-        if (distancesMap1.has(value.code)) {
-          matchMap.set(value.code, distancesMap1.get(value.code).get(value.code));
-        } else {
-          distancesMap1.forEach((map: Map<string, number>) => {
-            if(map.has(value.code)) {
-              const newDistance: number = map.get(value.code);
-              if(!matchMap.has(value.code) || matchMap.get(value.code) < newDistance){
-                matchMap.set(value.code, newDistance);
-              }
+        distancesMap1.forEach((map: Map<string, number>, key) => {
+          if(map.has(value.code)) {
+            const newDistance: number = map.get(value.code);
+            if(!matchMap.has(value.code) || matchMap.get(value.code) < newDistance){
+              matchMap.set(value.code, newDistance);
             }
-          });
-        }
+          }
+        });
         if(!matchMap.has(value.code)){
           this.notMatchConcepts2.push(value);
+        } else if (matchMap.get(value.code) !== 100) {
+          value.partialMatch = matchMap.get(value.code);
+          this.partialMatchConcepts2.push(value);
         }
       });
 
       matchMap.forEach((value: number, key: string) => {
-        const code = key === 'GIST' ? 'GI' : key;
-        const concept = this.bokService.getConceptInfoByCode(code);
-
-        if (concept.name[0] !== '[') concept.name = '['+ key +'] ' + concept.name;
-
         if (value === 100) {
+          const code = key === 'GIST' ? 'GI' : key;
+          const concept = this.bokService.getConceptInfoByCode(code);
+
+          if (concept.name[0] !== '[') concept.name = '['+ key +'] ' + concept.name;
+
           this.commonBokConcepts.push(concept);
-        } else {
-          concept.partialMatch = value;
-          this.partialMatchConcepts.push(concept);
         }
       });
 
       this.commonBokConcepts.sort((a, b) => (a.code > b.code) ? 1 : -1);
-      this.partialMatchConcepts.sort((a, b) => (a.code > b.code) ? 1 : -1);
+      this.partialMatchConcepts1.sort((a, b) => (a.code > b.code) ? 1 : -1);
+      this.partialMatchConcepts2.sort((a, b) => (a.code > b.code) ? 1 : -1);
 
       this.notMatchConcepts1.sort((a, b) => (a.code > b.code) ? 1 : -1);
       this.notMatchConcepts2.sort((a, b) => (a.code > b.code) ? 1 : -1);

@@ -704,36 +704,78 @@
                 </div>
               </div>
 
-              <div *ngIf="partialMatchConcepts.length > 0">
+              <div *ngIf="partialMatchConcepts1.length > 0 || partialMatchConcepts2.length > 0">
                 <div class="card-header">
-                  <p> Partial matching concepts
+                  <h5> <strong>Partial matching concepts </strong>
                     <span
                       tooltip="BoK concepts with partial matches: These are concepts that share some similarity between the two resources."
                       class="badge badge-primary badge-pill">i</span>
-                  </p>
+                  </h5>
                 </div>
-                <div class="card card-accent-secondary card-margin">
-                  <div class="card-body" style="background-color: #faf9f8">
-                    <div class="container row col-md-12">
-                      <div class="col-sm-6 col-md-6 text-left ma">
-                        <button *ngFor="let mk of partialMatchConcepts" type="button" class="btn btn-pill"
-                          [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
-                          <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
-                            {{mk.name}}
-                          </a>
-                        </button>
+                <div class="container row col-md-12">
+                  <div class="col-sm-6 col-md-6">
+                    <div class="card card-accent-secondary">
+                      <div class="card-header">
+                        <h6 *ngIf="resource1">{{resource1.name}}</h6>
                       </div>
-                      <div class="col-sm-6 col-md-6">
-                        <div *ngFor="let k of partialMatchConcepts" class="row">
-                          <div class="col-md-4">
-                            <div>
-                              <small class="text-muted">{{k.code}}: {{k.partialMatch}}%</small>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="row text-center ma">
+                          <button *ngFor="let mk of partialMatchConcepts1" type="button" class="btn btn-pill"
+                            [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
+                            <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
+                              {{mk.name}}
+                            </a>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="col text-center ma">
+                          <div *ngFor="let k of partialMatchConcepts1" class="row">
+                            <div class="col-md-4">
+                              <div>
+                                <small class="text-muted">{{k.code}}: {{k.partialMatch}}%</small>
+                              </div>
+                            </div>
+                            <div class="col-md-6" style="padding-top: 10px;">
+                              <div class="progress progress-xs">
+                                <div class="progress-bar" [ngClass]="'bok-' + ( k.code | slice:0:2 )" role="progressbar"
+                                  aria-valuenow="k.partialMatch" [style.width.%]="k.partialMatch" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                              </div>
                             </div>
                           </div>
-                          <div class="col-md-6" style="padding-top: 10px;">
-                            <div class="progress progress-xs">
-                              <div class="progress-bar" [ngClass]="'bok-' + ( k.code | slice:0:2 )" role="progressbar"
-                                aria-valuenow="k.partialMatch" [style.width.%]="k.partialMatch" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-6 col-md-6">
+                    <div class="card card-accent-secondary">
+                      <div class="card-header">
+                        <h6 *ngIf="resource2">{{resource2.name}}</h6>
+                      </div>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="row text-center ma">
+                          <button *ngFor="let mk of partialMatchConcepts2" type="button" class="btn btn-pill"
+                            [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
+                            <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
+                              {{mk.name}}
+                            </a>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="col text-center ma">
+                          <div *ngFor="let k of partialMatchConcepts2" class="row">
+                            <div class="col-md-4">
+                              <div>
+                                <small class="text-muted">{{k.code}}: {{k.partialMatch}}%</small>
+                              </div>
+                            </div>
+                            <div class="col-md-6" style="padding-top: 10px;">
+                              <div class="progress progress-xs">
+                                <div class="progress-bar" [ngClass]="'bok-' + ( k.code | slice:0:2 )" role="progressbar"
+                                  aria-valuenow="k.partialMatch" [style.width.%]="k.partialMatch" aria-valuemin="0" aria-valuemax="100">
+                                </div>
                               </div>
                             </div>
                           </div>
