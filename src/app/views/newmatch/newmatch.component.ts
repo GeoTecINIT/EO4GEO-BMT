@@ -794,15 +794,11 @@ export class NewmatchComponent implements OnInit {
       const tempStats = {};
       let tempTotal = 0;
       this.commonBokConcepts.forEach(kn => {
-        let code = this.getParent(kn.code);
-        if (code === undefined) {
-          code = kn.code.slice(0, 2);
-        }
-        if (code === 'GIST') {
-          code = kn.code;
-        }
-        tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
-        tempTotal++;
+        let codes: Set<string> = this.getParents(kn.code);
+        codes.forEach( code => {
+          tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
+          tempTotal++;
+        });
       });
       Object.keys(tempStats).forEach(k => {
         const nameKA = k + ' - ' + this.kaCodes[k === 'GIST' ? 'GI' : k];
@@ -822,15 +818,11 @@ export class NewmatchComponent implements OnInit {
       const tempStats2 = {};
       let tempTotal2 = 0;
       this.notMatchConcepts1.forEach(nc => {
-        let code = this.getParent(nc.code);
-        if (code === undefined) {
-          code = nc.code.slice(0, 2);
-        }
-        if (code === 'GIST') {
-          code = nc.code;
-        }
-        tempStats2[code] !== undefined ? tempStats2[code]++ : tempStats2[code] = 1;
-        tempTotal2++;
+        let codes: Set<string> = this.getParents(nc.code);
+        codes.forEach( code => {
+          tempStats2[code] !== undefined ? tempStats2[code]++ : tempStats2[code] = 1;
+          tempTotal2++;
+        });
       });
       Object.keys(tempStats2).forEach(k => {
         const nameKA = k + ' - ' + this.kaCodes[k === 'GIST' ? 'GI' : k];
@@ -839,15 +831,11 @@ export class NewmatchComponent implements OnInit {
       const tempStats3 = {};
       let tempTotal3 = 0;
       this.notMatchConcepts2.forEach(nc => {
-        let code = this.getParent(nc.code);
-        if (code === undefined) {
-          code = nc.code.slice(0, 2);
-        }
-        if (code === 'GIST') {
-          code = nc.code;
-        }
-        tempStats3[code] !== undefined ? tempStats3[code]++ : tempStats3[code] = 1;
-        tempTotal3++;
+        let codes: Set<string> = this.getParents(nc.code);
+        codes.forEach( code => {
+          tempStats3[code] !== undefined ? tempStats3[code]++ : tempStats3[code] = 1;
+          tempTotal3++;
+        });
       });
       Object.keys(tempStats3).forEach(k => {
         const nameKA = k + ' - ' + this.kaCodes[k === 'GIST' ? 'GI' : k];
@@ -863,15 +851,11 @@ export class NewmatchComponent implements OnInit {
       const tempStats = {};
       let tempTotal = 0;
       this.commonSkills.forEach(nc => {
-        let code = this.getParent(nc);
-        if (code === undefined) {
-          code = nc.slice(0, 2);
-        }
-        if (code === 'GIST') {
-          code = nc;
-        }
-        tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
-        tempTotal++;
+        let codes: Set<string> = this.getParents(nc.code);
+        codes.forEach( code => {
+          tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
+          tempTotal++;
+        });
       });
       Object.keys(tempStats).forEach(k => {
         const nameKA = k + ' - ' + this.kaCodes[k];
@@ -1121,8 +1105,8 @@ export class NewmatchComponent implements OnInit {
     }
   }
 
-  getParent(concept) {
-    let parents = new Set();
+  getParents(concept: string): Set<string> {
+    let parents: Set<string> = new Set();
 
     const findParents = (node: TreeNode) => {
       for (let relation of node.relations) {
@@ -1139,8 +1123,7 @@ export class NewmatchComponent implements OnInit {
 
     let currentNode = this.dijkstraService.getTreeNode(concept);
     findParents(currentNode);
-    const firstParent = parents.values().next().value;
-    return firstParent ? firstParent : concept;
+    return parents.size > 0 ? parents : new Set([concept]);
   }
 
 
@@ -1173,18 +1156,14 @@ export class NewmatchComponent implements OnInit {
     let i = 0;
 
     conceptsToAnalize.forEach(bok1 => {
-      let parent = '';
-      if (bok1.code) {
-        parent = this.getParent(bok1.code);
-      } else {
-        parent = this.getParent(bok1);
-      }
-      if (parent !== '') {
+      const codes = this.getParents(bok1.code ? bok1.code : bok1);
+      codes.forEach( code => {
+        let parent = code === 'GIST' ? 'GI' : code;
         if (this.kaCodes[parent] !== undefined) {
           i = numConcepts[parent] !== undefined ? numConcepts[parent] + 1 : 1;
           numConcepts[parent] = i;
         }
-      }
+      });
     });
     return numConcepts;
   }
