@@ -347,7 +347,7 @@ export class NewmatchComponent implements OnInit {
 
   onFileChange1(event) {
     // empty filtered resources to hide EO4GEO content
-    this.filteredResources1 = [];
+    //this.filteredResources1 = [];
     const reader = new FileReader();
     if (event.target.files && event.target.files.length) {
       [this.file1] = event.target.files;
@@ -366,7 +366,7 @@ export class NewmatchComponent implements OnInit {
 
   onFileChange2(event) {
     // empty filtered resources to hide EO4GEO content
-    this.filteredResources2 = [];
+    //this.filteredResources2 = [];
     const reader = new FileReader();
     if (event.target.files && event.target.files.length) {
       [this.file2] = event.target.files;
@@ -388,6 +388,7 @@ export class NewmatchComponent implements OnInit {
     this.notMatchConcepts1 = [];
     this.conceptsName = [];
     this.file1 = null;
+    this.uploadPercent1 = null;
     this.bokConcepts1 = this.getBokConceptsFromResource(res);
     this.skills1 = this.getSkillsFromResource(res);
     this.fields1 = this.getFieldsFromResource(res);
@@ -411,6 +412,7 @@ export class NewmatchComponent implements OnInit {
     this.notMatchConcepts2 = [];
     this.conceptsName = [];
     this.file2 = null;
+    this.uploadPercent2 = null;
     this.bokConcepts2 = this.getBokConceptsFromResource(res);
     this.skills2 = this.getSkillsFromResource(res);
     this.fields2 = this.getFieldsFromResource(res);
