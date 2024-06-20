@@ -696,6 +696,8 @@ export class NewmatchComponent implements OnInit {
         } else if (matchMap.get(value.code) !== 100) {
           value.partialMatch = matchMap.get(value.code);
           this.partialMatchConcepts1.push(value);
+        } else {
+          this.commonBokConcepts.push(value);
         }
       });
 
@@ -713,17 +715,22 @@ export class NewmatchComponent implements OnInit {
         } else if (matchMap.get(value.code) !== 100) {
           value.partialMatch = matchMap.get(value.code);
           this.partialMatchConcepts2.push(value);
+        } else {
+          this.commonBokConcepts.push(value);
         }
       });
 
-      matchMap.forEach((value: number, key: string) => {
-        if (value === 100) {
-          const concept = this.bokService.getConceptInfoByCode(key);
-          if (concept.name[0] !== '[') concept.name = '['+ key +'] ' + concept.name;
-
-          this.commonBokConcepts.push(concept);
+      const commonConceptsSet = new Set<string>();
+      const uniqueCommonConcepts = [];
+      for(let i = 0; i<this.commonBokConcepts.length; i++) {
+        const concept = this.commonBokConcepts[i];
+        if (!commonConceptsSet.has(concept.code)) {
+          commonConceptsSet.add(concept.code);
+          uniqueCommonConcepts.push(concept);
         }
-      });
+      }
+      this.commonBokConcepts = uniqueCommonConcepts;
+
 
       this.commonBokConcepts.sort((a, b) => (a.code > b.code) ? 1 : -1);
       this.partialMatchConcepts1.sort((a, b) => (a.code > b.code) ? 1 : -1);
