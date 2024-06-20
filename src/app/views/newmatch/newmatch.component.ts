@@ -111,8 +111,11 @@ export class NewmatchComponent implements OnInit {
   errorFile2 = false;
 
   statisticsMatching = [];
+  multiParentsMatching = false;
   statisticsNotMatching1 = [];
   statisticsNotMatching2 = [];
+  multiParentsNotMatching1 = false;
+  multiParentsNotMatching2 = false;
   statisticsSkills = [];
   statisticsTransversalSkills = [];
   statisticsFields = [];
@@ -801,11 +804,13 @@ export class NewmatchComponent implements OnInit {
 
   calculateStatistics() {
     this.statisticsMatching = [];
+    this.multiParentsMatching = false;
     if (this.commonBokConcepts) {
       const tempStats = {};
       let tempTotal = 0;
       this.commonBokConcepts.forEach(kn => {
         let codes: Set<string> = this.getParents(kn.code);
+        if (codes.size > 1) this.multiParentsMatching = true;
         codes.forEach( code => {
           tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
           tempTotal++;
@@ -825,11 +830,14 @@ export class NewmatchComponent implements OnInit {
   calculateNotmatchingStatistics() {
     this.statisticsNotMatching1 = [];
     this.statisticsNotMatching2 = [];
+    this.multiParentsNotMatching1 = false;
+    this.multiParentsNotMatching2 = false;
     if (this.commonBokConcepts) {
       const tempStats2 = {};
       let tempTotal2 = 0;
       this.notMatchConcepts1.forEach(nc => {
         let codes: Set<string> = this.getParents(nc.code);
+        if (codes.size > 1) this.multiParentsNotMatching1 = true;
         codes.forEach( code => {
           tempStats2[code] !== undefined ? tempStats2[code]++ : tempStats2[code] = 1;
           tempTotal2++;
@@ -843,6 +851,7 @@ export class NewmatchComponent implements OnInit {
       let tempTotal3 = 0;
       this.notMatchConcepts2.forEach(nc => {
         let codes: Set<string> = this.getParents(nc.code);
+        if (codes.size > 1) this.multiParentsNotMatching2 = true;
         codes.forEach( code => {
           tempStats3[code] !== undefined ? tempStats3[code]++ : tempStats3[code] = 1;
           tempTotal3++;
@@ -1125,7 +1134,7 @@ export class NewmatchComponent implements OnInit {
           let parentNode = this.dijkstraService.getTreeNode(relation.target);
           if (this.dijkstraService.knowledgeNodes.has(parentNode.code)) {
             parents.add(parentNode.code);
-          } else {
+          } else if (parentNode){
             findParents(parentNode);
           }
         }
@@ -1133,7 +1142,7 @@ export class NewmatchComponent implements OnInit {
     }
 
     let currentNode = this.dijkstraService.getTreeNode(concept);
-    findParents(currentNode);
+    if (currentNode) findParents(currentNode);
     return parents.size > 0 ? parents : new Set([concept]);
   }
 

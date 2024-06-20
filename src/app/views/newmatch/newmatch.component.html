@@ -642,11 +642,13 @@
                   </button>
                 </div>
                 <div class="col-md-4 ma">
-                  <p *ngIf="commonBokConcepts.length > 0 ">Matching distribution
+                  <p *ngIf="commonBokConcepts.length > 0 ">Matching distribution{{multiParentsMatching ? "*" : ""}}
                     <span tooltip="The overall distribution of matching concepts, ordered by knowledge area."
                       class="badge badge-primary badge-pill">i</span>
                   </p>
                   <canvas id="myChart" width="800" [height]="450" style="height: 0"></canvas>
+                  <br>
+                  <p *ngIf="multiParentsMatching"><small>*Some concepts may belong to more than one knowledge area.</small></p>
                 </div>
                 <div [hidden]="resource1 !== null && resource2 !== null && commonBokConcepts.length == 0"
                   *ngIf="bokConcepts1.length > 0 && bokConcepts2.length > 0">
@@ -814,9 +816,10 @@
                       </div>
                     </div>
                     <div class="row card-body" style="background-color: #faf9f8; margin-left: 5px;">
-                      <p *ngIf="notMatchConcepts1.length > 0"> Not Matching distribution</p>
+                      <p *ngIf="notMatchConcepts1.length > 0"> Not Matching distribution{{multiParentsNotMatching1 ? "*" : ""}}</p>
                       <canvas id="notMatch1" width="800" height="200" style="height: 0"></canvas>
-
+                      <br>
+                      <p *ngIf="multiParentsNotMatching1"><small>*Some concepts may belong to more than one knowledge area.</small></p>
                     </div>
                   </div>
                 </div>
@@ -837,9 +840,10 @@
                       </div>
                     </div>
                     <div class="row card-body" style="background-color: #faf9f8; margin-left: 5px;">
-                      <p *ngIf="notMatchConcepts2.length > 0 ">Not Matching distribution</p>
+                      <p *ngIf="notMatchConcepts2.length > 0 ">Not Matching distribution{{multiParentsNotMatching2 ? "*" : ""}}</p>
                       <canvas id="notMatch2" width="800" height="200" style="height: 0"></canvas>
-
+                      <br>
+                      <p *ngIf="multiParentsNotMatching2"><small>*Some concepts may belong to more than one knowledge area.</small></p>
                     </div>
                   </div>
                 </div>
