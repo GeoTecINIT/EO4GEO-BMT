@@ -32,7 +32,7 @@ import { RelationType, TreeNode, TreeRelation } from '../../model/treeNode.model
 })
 export class NewmatchComponent implements OnInit {
 
-  model = new Match('', '', '', '', '', '', true, null, null, null, null, null, null, null, '');
+  model = new Match('', '', '', '', '', '', true, null, null, null, null, null, null, null, null, null, '');
 
   selectedMatch: Match;
   _id: string;
@@ -260,6 +260,8 @@ export class NewmatchComponent implements OnInit {
       this.model.commonConcepts = this.commonBokConcepts;
       this.model.notMatchConcepts1 = this.notMatchConcepts1;
       this.model.notMatchConcepts2 = this.notMatchConcepts2;
+      this.model.partialMatchConcepts1 = this.partialMatchConcepts1;
+      this.model.partialMatchConcepts2 = this.partialMatchConcepts2;
       this.model.resource1 = this.resource1;
       this.model.resource2 = this.resource2;
       this.model.orgId = this.saveOrg._id;

@@ -220,57 +220,141 @@
                   </div>
                 </div>
               </div>
-                  <div class="card-header" >
-                    <h5><strong> Differing concepts </strong>
-                      <span tooltip="BoK concepts that are only present in one resource: this is knowledge that is not shared between the two resources."
-                            class="badge badge-primary badge-pill">i</span></h5>
-                  </div>
-                  <div class="container row col-md-12">
-                    <div class="col-sm-6 col-md-6">
-                      <div class="card card-accent-info">
-                        <div class="card-header">
-                          <h6 >{{selectedMatch.resource1.name}}</h6>
-                        </div>
-                        <div class="card-body" style="background-color: #faf9f8">
-                          <div class="row text-center ma" *ngIf="selectedMatch.notMatchConcepts1.length > 0">
-                              <button *ngFor="let mk of selectedMatch.notMatchConcepts1" type="button" class="btn btn-pill"
-                                [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
-                                <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank"> {{ mk.code }} -
-                                  {{this.bokService.getConceptInfoByCode(mk.code).name}} </a>
-                              </button>
-                          </div>
-                         <div class="row card-body" style="background-color: #faf9f8; margin-left: 5px;">
-                          <div class="row" style="margin-left: 5px;">
-                            <p> Not Matching distribution</p>
-                            <canvas appChartNotCommon1  width="800" height="200" style="height: 0"></canvas>
-                          </div>
+
+              <div *ngIf="(selectedMatch.partialMatchConcepts1 && selectedMatch.partialMatchConcepts1.length > 0) || 
+                          (selectedMatch.partialMatchConcepts2 && selectedMatch.partialMatchConcepts2.length > 0)">
+                <div class="card-header">
+                  <h5> <strong>Partial matching concepts </strong>
+                    <span
+                      tooltip="BoK concepts with partial matches: These are concepts that share some similarity between the two resources."
+                      class="badge badge-primary badge-pill">i</span>
+                  </h5>
+                </div>
+                <div class="container row col-md-12">
+                  <div class="col-sm-6 col-md-6">
+                    <div class="card card-accent-secondary">
+                      <div class="card-header">
+                        <h6 *ngIf="selectedMatch.resource1">{{selectedMatch.resource1.name}}</h6>
+                      </div>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="row text-center ma">
+                          <button *ngFor="let mk of selectedMatch.partialMatchConcepts1" type="button" class="btn btn-pill"
+                            [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
+                            <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
+                              {{mk.name}}
+                            </a>
+                          </button>
                         </div>
                       </div>
-                      </div>
-                    </div>
-                    <div class="col-sm-6 col-md-6">
-                      <div class="card card-accent-info">
-                        <div class="card-header">
-                          <h6 >{{selectedMatch.resource2.name}}</h6>
-                        </div>
-                        <div class="card-body" style="background-color: #faf9f8">
-                          <div class="row text-center ma" *ngIf="selectedMatch.notMatchConcepts2.length > 0">
-                              <button *ngFor="let mk of selectedMatch.notMatchConcepts2" type="button" class="btn btn-pill"
-                                [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
-                                <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank"> {{ mk.code }} -
-                                  {{this.bokService.getConceptInfoByCode(mk.code).name}} </a>
-                              </button>
-                          </div>
-                          <div class="row card-body" style="background-color: #faf9f8; margin-left: 5px;">
-                            <div class="row" style="margin-left: 5px;">
-                              <p> Not Matching distribution</p>
-                              <canvas appChartNotCommon2 id="notMatch2"  width="800" height="200" style="height: 0"></canvas>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="col text-center ma">
+                          <div *ngFor="let k of selectedMatch.partialMatchConcepts1" class="row">
+                            <div class="col-md-4">
+                              <div>
+                                <small class="text-muted">{{k.code}}: {{k.partialMatch}}%</small>
+                              </div>
+                            </div>
+                            <div class="col-md-6" style="padding-top: 10px;">
+                              <div class="progress progress-xs">
+                                <div class="progress-bar" [ngClass]="'bok-' + ( k.code | slice:0:2 )" role="progressbar"
+                                  aria-valuenow="k.partialMatch" [style.width.%]="k.partialMatch" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                  <div class="col-sm-6 col-md-6">
+                    <div class="card card-accent-secondary">
+                      <div class="card-header">
+                        <h6 *ngIf="resource2">{{selectedMatch.resource2.name}}</h6>
+                      </div>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="row text-center ma">
+                          <button *ngFor="let mk of selectedMatch.partialMatchConcepts2" type="button" class="btn btn-pill"
+                            [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
+                            <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
+                              {{mk.name}}
+                            </a>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="col text-center ma">
+                          <div *ngFor="let k of selectedMatch.partialMatchConcepts2" class="row">
+                            <div class="col-md-4">
+                              <div>
+                                <small class="text-muted">{{k.code}}: {{k.partialMatch}}%</small>
+                              </div>
+                            </div>
+                            <div class="col-md-6" style="padding-top: 10px;">
+                              <div class="progress progress-xs">
+                                <div class="progress-bar" [ngClass]="'bok-' + ( k.code | slice:0:2 )" role="progressbar"
+                                  aria-valuenow="k.partialMatch" [style.width.%]="k.partialMatch" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>       
+                </div>
+              </div>
+
+              <div class="card-header" >
+                <h5><strong> Differing concepts </strong>
+                  <span tooltip="BoK concepts that are only present in one resource: this is knowledge that is not shared between the two resources."
+                        class="badge badge-primary badge-pill">i</span></h5>
+              </div>
+              <div class="container row col-md-12">
+                <div class="col-sm-6 col-md-6">
+                  <div class="card card-accent-info">
+                    <div class="card-header">
+                      <h6 >{{selectedMatch.resource1.name}}</h6>
+                    </div>
+                    <div class="card-body" style="background-color: #faf9f8">
+                      <div class="row text-center ma" *ngIf="selectedMatch.notMatchConcepts1.length > 0">
+                          <button *ngFor="let mk of selectedMatch.notMatchConcepts1" type="button" class="btn btn-pill"
+                            [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
+                            <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank"> {{ mk.code }} -
+                              {{this.bokService.getConceptInfoByCode(mk.code).name}} </a>
+                          </button>
+                      </div>
+                      <div class="row card-body" style="background-color: #faf9f8; margin-left: 5px;">
+                      <div class="row" style="margin-left: 5px;">
+                        <p> Not Matching distribution</p>
+                        <canvas appChartNotCommon1  width="800" height="200" style="height: 0"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-md-6">
+                  <div class="card card-accent-info">
+                    <div class="card-header">
+                      <h6 >{{selectedMatch.resource2.name}}</h6>
+                    </div>
+                    <div class="card-body" style="background-color: #faf9f8">
+                      <div class="row text-center ma" *ngIf="selectedMatch.notMatchConcepts2.length > 0">
+                          <button *ngFor="let mk of selectedMatch.notMatchConcepts2" type="button" class="btn btn-pill"
+                            [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
+                            <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank"> {{ mk.code }} -
+                              {{this.bokService.getConceptInfoByCode(mk.code).name}} </a>
+                          </button>
+                      </div>
+                      <div class="row card-body" style="background-color: #faf9f8; margin-left: 5px;">
+                        <div class="row" style="margin-left: 5px;">
+                          <p> Not Matching distribution</p>
+                          <canvas appChartNotCommon2 id="notMatch2"  width="800" height="200" style="height: 0"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             <!-- Skills section-->
             <div class="card card-accent-info">

@@ -69,6 +69,8 @@ export class Match extends Object {
     public commonConcepts: any[],
     public notMatchConcepts1: any[],
     public notMatchConcepts2: any[],
+    public partialMatchConcepts1: any[],
+    public partialMatchConcepts2: any[],
     public updatedAt: any,
     public createdAt: any,
     public division: string
