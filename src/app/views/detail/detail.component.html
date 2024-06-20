@@ -105,44 +105,40 @@
               </div>
             </div>
             <hr />
-            <div class="card card-accent-info">
-              <div class="card-header" >
+            <!-- EQF COMPARISON -->
+            <div [hidden]="selectedMatch.resource1 !== null && selectedMatch.resource1.eqf == null && selectedMatch.resource2 !== null && selectedMatch.resource2.eqf ==null"
+              class="card card-accent-primary">
+              <div class="card-header">
                 <h5><strong>EQF level comparison</strong>
                   <span
                     tooltip="EQF concerns the level of what a learner knows, understands (knowledge) and is able to do (skills). It ranges from 1 (basic) to 8 (advanced)"
-                    class="badge badge-primary badge-pill">i</span></h5>
+                    class="badge badge-primary badge-pill">i</span>
+                </h5>
 
               </div>
-              <div class="row card-body" style="background-color: #faf9f8" >
-                <div class="col-sm-6 col-md-6" *ngIf="(selectedMatch.resource1 !== null && selectedMatch.resource1.eqf  )">
-                  <p style="margin-left: 10px;">{{selectedMatch.resource1.name}}
-                    <a role="button" class="btn btn-default btn-secondary" href="https://www.cedefop.europa.eu/en/events-and-projects/projects/european-qualifications-framework-eqf" target="_blank"
-                       placement="left">
-                      EQF {{selectedMatch.resource1.eqf }}
-                    </a> </p>
+              <div class="row card-body" style="background-color: #faf9f8"
+                *ngIf="(selectedMatch.resource1 !== null && selectedMatch.resource1.eqf !==null  )|| (selectedMatch.resource2 !== null &&  selectedMatch.resource2.eqf!==null )">
+                <div class="col-md-6 text-center ma" *ngIf="(selectedMatch.resource1 !== null && selectedMatch.resource1.eqf  )">
+                  {{selectedMatch.resource1.name}}
+                  <a role="button" class="btn btn-default btn-secondary"
+                    href="https://www.cedefop.europa.eu/en/events-and-projects/projects/european-qualifications-framework-eqf"
+                    target="_blank" placement="left">
+                    EQF {{selectedMatch.resource1.eqf }}
+                  </a>
                 </div>
-                <div class="col-sm-6 col-md-6" *ngIf="(selectedMatch.resource1 !== null && selectedMatch.resource1.type === 2  )">
-                  <p style="margin-left: 10px;">{{selectedMatch.resource1.name}}
-                    <a role="button" class="btn btn-default btn-secondary"
-                       placement="left">
-                      EQF {{selectedMatch.resource1.occuProf.eqf }}
-                    </a> </p>
+                <div class="col-md-6 text-center ma" *ngIf="(selectedMatch.resource1 == null || !selectedMatch.resource1.eqf  )">
+                  -
                 </div>
-                <div style="border-left: 1px solid #e5e5e5;">
+                <div class="col-md-6 text-center ma" *ngIf="(selectedMatch.resource2 !== null &&  selectedMatch.resource2.eqf)">
+                  {{selectedMatch.resource2.name}}
+                  <a role="button" class="btn btn-default btn-secondary"
+                    href="https://www.cedefop.europa.eu/en/events-and-projects/projects/european-qualifications-framework-eqf"
+                    target="_blank" placement="left">
+                    EQF {{selectedMatch.resource2.eqf }}
+                  </a>
                 </div>
-                <div class="col-sm-5 col-md-5" *ngIf="(selectedMatch.resource2 !== null &&  selectedMatch.resource2.eqf)">
-                  <p>{{selectedMatch.resource2.name}}
-                    <a role="button" class="btn btn-default btn-secondary"  href="https://www.cedefop.europa.eu/en/events-and-projects/projects/european-qualifications-framework-eqf" target="_blank"
-                       placement="left">
-                      EQF {{selectedMatch.resource2.eqf }}
-                    </a></p>
-                </div>
-                <div class="col-sm-5 col-md-5" *ngIf="(selectedMatch.resource2 !== null && selectedMatch.resource2.type === 2  )">
-                  <p>{{selectedMatch.resource2.name}}
-                    <a role="button" class="btn btn-default btn-secondary"  href="https://www.cedefop.europa.eu/en/events-and-projects/projects/european-qualifications-framework-eqf" target="_blank"
-                       placement="left">
-                      EQF {{selectedMatch.resource2.occuProf.eqf }}
-                    </a></p>
+                <div class="col-md-6 text-center ma" *ngIf="(selectedMatch.resource2 == null || !selectedMatch.resource2.eqf  )">
+                  -
                 </div>
               </div>
             </div>
