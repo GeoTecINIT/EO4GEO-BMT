@@ -34,7 +34,11 @@
               </ng-select>
             </div>
             <div class="col">
-              <p class="text-primary text-right">Matching flexibility</p>
+              <p class="text-primary text-right">Matching flexibility
+                <span
+                  tooltip="Matching flexibility defines how strict the comparison is. A value of 0 allow only exact matches, while higher values allow partial matching of elements."
+                  class="badge badge-primary badge-pill">i</span>
+              </p>
             </div>
             <div class="col">
               <input type="range" class="form-range" min="0" max="4"  [(ngModel)]="matchingFlexibility" (ngModelChange)="match()">
