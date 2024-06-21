@@ -1141,9 +1141,14 @@ export class NewmatchComponent implements OnInit {
       }
     }
 
-    let currentNode = this.dijkstraService.getTreeNode(concept);
-    if (currentNode) findParents(currentNode);
-    return parents.size > 0 ? parents : new Set([concept]);
+    if (this.dijkstraService.knowledgeNodes.has(concept) || concept === this.dijkstraService.mainNode) {
+      parents.add(concept);
+    } else {
+      let currentNode = this.dijkstraService.getTreeNode(concept);
+      if (currentNode) findParents(currentNode);
+    }
+
+    return parents;
   }
 
 
