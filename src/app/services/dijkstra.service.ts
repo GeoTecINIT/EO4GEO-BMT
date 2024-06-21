@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { RelationType, TreeNode, TreeRelation } from "../model/treeNode.model";
 import { PriorityQueue } from "../model/priorityQueue.model";
 import { BokService } from "./bok.service";
+import { forEach } from "@angular/router/src/utils/collection";
 
 @Injectable({
     providedIn: 'root'
@@ -9,12 +10,22 @@ import { BokService } from "./bok.service";
   export class DijkstraService {
 
     private graph: Map<string, TreeNode>;
-    readonly knowledgeNodes = new Set(
-        ['AM', 'CF', 'CV', 'DA', 'DM', 'GC', 'GD', 'GS', 'IP', 'OI', 'PP', 'PS', 'TA', 'WB']
-    );
+    private knowledgeNodes: Set<string>;
     readonly mainNode = 'GIST';
 
     constructor(private readonly bokService: BokService) {}
+
+    private loadKnowledgeNodes(): Set<string> {
+        if (!this.graph) this.graph = this.buildGraph(this.bokService.getConcepts(), this.bokService.getRelations());
+        let nodes: Set<string> = new Set();
+        let mainNode: TreeNode = this.graph.get(this.mainNode);
+        for (let relation of mainNode.relations) {
+            if (relation.type === RelationType.IsSuperconceptOf) {
+                nodes.add(relation.target);
+            }
+        }
+        return nodes;
+    }
 
     private dijkstra(
         start: TreeNode,
@@ -95,5 +106,10 @@ import { BokService } from "./bok.service";
 
     public getTreeNode (code: string): TreeNode {
         return this.graph.get(code);
+    }
+
+    public getKnowledgeNodes() {
+        if (!this.knowledgeNodes) this.knowledgeNodes = this.loadKnowledgeNodes();
+        return this.knowledgeNodes;
     }
   }

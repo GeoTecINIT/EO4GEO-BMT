@@ -1132,7 +1132,7 @@ export class NewmatchComponent implements OnInit {
       for (let relation of node.relations) {
         if (relation.type === RelationType.IsSubconceptOf) {
           let parentNode = this.dijkstraService.getTreeNode(relation.target);
-          if (this.dijkstraService.knowledgeNodes.has(parentNode.code)) {
+          if (this.dijkstraService.getKnowledgeNodes().has(parentNode.code)) {
             parents.add(parentNode.code);
           } else if (parentNode){
             findParents(parentNode);
@@ -1141,7 +1141,7 @@ export class NewmatchComponent implements OnInit {
       }
     }
 
-    if (this.dijkstraService.knowledgeNodes.has(concept) || concept === this.dijkstraService.mainNode) {
+    if (this.dijkstraService.getKnowledgeNodes().has(concept) || concept === this.dijkstraService.mainNode) {
       parents.add(concept);
     } else {
       let currentNode = this.dijkstraService.getTreeNode(concept);
