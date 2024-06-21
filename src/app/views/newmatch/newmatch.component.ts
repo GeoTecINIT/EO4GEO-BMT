@@ -130,23 +130,6 @@ export class NewmatchComponent implements OnInit {
   isAnonymous = true;
   type = -1;
   type2 = -1;
-  kaCodes = {
-    AM: 'Analytical Methods',
-    CF: 'Conceptual Foundations',
-    CV: 'Cartography and Visualization',
-    DA: 'Design and Setup of Geographic Information Systems',
-    DM: 'Data Modeling, Storage and Exploitation',
-    GC: 'Geocomputation',
-    GD: 'Geospatial Data',
-    GS: 'GI and Society',
-    IP: 'Image processing and analysis',
-    OI: 'Organizational and Institutional Aspects',
-    PP: 'Physical principles',
-    PS: 'Platforms, sensors and digital imagery',
-    TA: 'Thematic and application domains',
-    WB: 'Web-based GI',
-    GI: 'Geographic Information Science and Technology',
-  };
 
   formGroup = this.fb.group({
     file: [null, Validators.required]
@@ -817,7 +800,7 @@ export class NewmatchComponent implements OnInit {
         });
       });
       Object.keys(tempStats).forEach(k => {
-        const nameKA = k + ' - ' + this.kaCodes[k === 'GIST' ? 'GI' : k];
+        const nameKA = k + ' - ' + this.dijkstraService.getTreeNode(k).name;
         this.statisticsMatching.push({ code: nameKA, value: Math.round(tempStats[k] * 100 / tempTotal), count: tempStats[k] });
       });
       this.graphStatistics(this.statisticsMatching, 'myChart');
@@ -844,7 +827,7 @@ export class NewmatchComponent implements OnInit {
         });
       });
       Object.keys(tempStats2).forEach(k => {
-        const nameKA = k + ' - ' + this.kaCodes[k === 'GIST' ? 'GI' : k];
+        const nameKA = k + ' - ' + this.dijkstraService.getTreeNode(k).name;
         this.statisticsNotMatching1.push({ code: nameKA, value: Math.round(tempStats2[k] * 100 / tempTotal2), count: tempStats2[k] });
       });
       const tempStats3 = {};
@@ -858,7 +841,7 @@ export class NewmatchComponent implements OnInit {
         });
       });
       Object.keys(tempStats3).forEach(k => {
-        const nameKA = k + ' - ' + this.kaCodes[k === 'GIST' ? 'GI' : k];
+        const nameKA = k + ' - ' + this.dijkstraService.getTreeNode(k).name;
         this.statisticsNotMatching2.push({ code: nameKA, value: Math.round(tempStats3[k] * 100 / tempTotal3), count: tempStats3[k] });
       });
     }
@@ -878,7 +861,7 @@ export class NewmatchComponent implements OnInit {
         });
       });
       Object.keys(tempStats).forEach(k => {
-        const nameKA = k + ' - ' + this.kaCodes[k];
+        const nameKA = k + ' - ' + this.dijkstraService.getTreeNode(k).name;
         this.statisticsSkills.push({ code: nameKA, value: Math.round(tempStats[k] * 100 / tempTotal) });
       });
     }
@@ -1183,10 +1166,9 @@ export class NewmatchComponent implements OnInit {
     conceptsToAnalize.forEach(bok1 => {
       const codes = this.getParents(bok1.code ? bok1.code : bok1);
       codes.forEach( code => {
-        let parent = code === 'GIST' ? 'GI' : code;
-        if (this.kaCodes[parent] !== undefined) {
-          i = numConcepts[parent] !== undefined ? numConcepts[parent] + 1 : 1;
-          numConcepts[parent] = i;
+        if (this.dijkstraService.getTreeNode(code).name !== undefined) {
+          i = numConcepts[code] !== undefined ? numConcepts[code] + 1 : 1;
+          numConcepts[code] = i;
         }
       });
     });

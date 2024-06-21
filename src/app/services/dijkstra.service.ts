@@ -63,7 +63,7 @@ import { forEach } from "@angular/router/src/utils/collection";
     private buildGraph (concepts: any[], relations: any[]) {
         const graph: Map<string, TreeNode> = new Map();
         concepts.forEach(concept => {
-            graph.set(concept.code, new TreeNode(concept.code, []));
+            graph.set(concept.code, new TreeNode(concept.code, concept.name, []));
         });
         relations.forEach(relation => {
             const sourceCode = concepts[relation.source].code;

@@ -1,9 +1,11 @@
 class TreeNode {
     code: string;
+    name: string;
     relations: TreeRelation[];
 
-    constructor(code: string, relations: TreeRelation[]) {
+    constructor(code: string, name: string, relations: TreeRelation[]) {
         this.code = code;
+        this.name = name;
         this.relations = relations;
     }
 }
