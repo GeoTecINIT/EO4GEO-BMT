@@ -112,4 +112,30 @@ import { forEach } from "@angular/router/src/utils/collection";
         if (!this.knowledgeNodes) this.knowledgeNodes = this.loadKnowledgeNodes();
         return this.knowledgeNodes;
     }
+
+    public getParents(concept: string): Set<string> {
+        let parents: Set<string> = new Set();
+    
+        const findParents = (node: TreeNode) => {
+          for (let relation of node.relations) {
+            if (relation.type === RelationType.IsSubconceptOf) {
+              let parentNode = this.getTreeNode(relation.target);
+              if (this.getKnowledgeNodes().has(parentNode.code)) {
+                parents.add(parentNode.code);
+              } else if (parentNode){
+                findParents(parentNode);
+              }
+            }
+          }
+        }
+    
+        if (this.getKnowledgeNodes().has(concept) || concept === this.mainNode) {
+          parents.add(concept);
+        } else {
+          let currentNode = this.getTreeNode(concept);
+          if (currentNode) findParents(currentNode);
+        }
+    
+        return parents;
+      }
   }

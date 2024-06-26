@@ -792,7 +792,7 @@ export class NewmatchComponent implements OnInit {
       const tempStats = {};
       let tempTotal = 0;
       this.commonBokConcepts.forEach(kn => {
-        let codes: Set<string> = this.getParents(kn.code);
+        let codes: Set<string> = this.dijkstraService.getParents(kn.code);
         if (codes.size > 1) this.multiParentsMatching = true;
         codes.forEach( code => {
           tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
@@ -819,7 +819,7 @@ export class NewmatchComponent implements OnInit {
       const tempStats2 = {};
       let tempTotal2 = 0;
       this.notMatchConcepts1.forEach(nc => {
-        let codes: Set<string> = this.getParents(nc.code);
+        let codes: Set<string> = this.dijkstraService.getParents(nc.code);
         if (codes.size > 1) this.multiParentsNotMatching1 = true;
         codes.forEach( code => {
           tempStats2[code] !== undefined ? tempStats2[code]++ : tempStats2[code] = 1;
@@ -833,7 +833,7 @@ export class NewmatchComponent implements OnInit {
       const tempStats3 = {};
       let tempTotal3 = 0;
       this.notMatchConcepts2.forEach(nc => {
-        let codes: Set<string> = this.getParents(nc.code);
+        let codes: Set<string> = this.dijkstraService.getParents(nc.code);
         if (codes.size > 1) this.multiParentsNotMatching2 = true;
         codes.forEach( code => {
           tempStats3[code] !== undefined ? tempStats3[code]++ : tempStats3[code] = 1;
@@ -854,7 +854,7 @@ export class NewmatchComponent implements OnInit {
       const tempStats = {};
       let tempTotal = 0;
       this.commonSkills.forEach(nc => {
-        let codes: Set<string> = this.getParents(nc.code);
+        let codes: Set<string> = this.dijkstraService.getParents(nc.code);
         codes.forEach( code => {
           tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
           tempTotal++;
@@ -1108,32 +1108,6 @@ export class NewmatchComponent implements OnInit {
     }
   }
 
-  getParents(concept: string): Set<string> {
-    let parents: Set<string> = new Set();
-
-    const findParents = (node: TreeNode) => {
-      for (let relation of node.relations) {
-        if (relation.type === RelationType.IsSubconceptOf) {
-          let parentNode = this.dijkstraService.getTreeNode(relation.target);
-          if (this.dijkstraService.getKnowledgeNodes().has(parentNode.code)) {
-            parents.add(parentNode.code);
-          } else if (parentNode){
-            findParents(parentNode);
-          }
-        }
-      }
-    }
-
-    if (this.dijkstraService.getKnowledgeNodes().has(concept) || concept === this.dijkstraService.mainNode) {
-      parents.add(concept);
-    } else {
-      let currentNode = this.dijkstraService.getTreeNode(concept);
-      if (currentNode) findParents(currentNode);
-    }
-
-    return parents;
-  }
-
 
   getStatisticsNumberOfConcepts() {
     this.numberOfConcepts1 = this.getNumberOfConcepts(this.bokConcepts1);
@@ -1164,7 +1138,7 @@ export class NewmatchComponent implements OnInit {
     let i = 0;
 
     conceptsToAnalize.forEach(bok1 => {
-      const codes = this.getParents(bok1.code ? bok1.code : bok1);
+      const codes = this.dijkstraService.getParents(bok1.code ? bok1.code : bok1);
       codes.forEach( code => {
         if (this.dijkstraService.getTreeNode(code).name !== undefined) {
           i = numConcepts[code] !== undefined ? numConcepts[code] + 1 : 1;

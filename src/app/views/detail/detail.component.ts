@@ -12,6 +12,8 @@ import { Chart } from 'chart.js';
 import { ChartConceptsDirective } from './chart-concepts.directive';
 import { DijkstraService } from '../../services/dijkstra.service';
 import { RelationType, TreeNode } from '../../model/treeNode.model';
+import { ChartNotCommon1Directive } from './chart-not-common1.directive';
+import { ChartNotCommon2Directive } from './chart-not-common2.directive';
 
 @Component({
   selector: 'app-detail',
@@ -23,23 +25,6 @@ export class DetailComponent implements OnInit {
   statistics = [];
   isAnonymous = null;
   myChart = null;
-  kaCodes = {
-    AM: 'Analytical Methods',
-    CF: 'Conceptual Foundations',
-    CV: 'Cartography and Visualization',
-    DA: 'Design and Setup of Geographic Information Systems',
-    DM: 'Data Modeling, Storage and Exploitation',
-    GC: 'Geocomputation',
-    GD: 'Geospatial Data',
-    GS: 'GI and Society',
-    IP: 'Image processing and analysis',
-    OI: 'Organizational and Institutional Aspects',
-    PP: 'Physical principles',
-    PS: 'Platforms, sensors and digital imagery',
-    TA: 'Thematic and application domains',
-    WB: 'Web-based GI',
-    GI: 'Geographic Information Science and Technology'
-  };
 
   selectedMatch: Match;
   currentUser: User = new User();
@@ -67,6 +52,10 @@ export class DetailComponent implements OnInit {
 
 
   @ViewChild('dangerModal') public dangerModal: ModalDirective;
+  @ViewChild('chartCommonRef') public chartCommonRef: ChartConceptsDirective;
+  @ViewChild('chartNoCommon1') public chartNoCommon1: ChartNotCommon1Directive;
+  @ViewChild('chartNoCommon1') public chartNoCommon2: ChartNotCommon2Directive;
+
   constructor(
     private matchService: MatchService,
     private userService: UserService,
@@ -224,32 +213,6 @@ export class DetailComponent implements OnInit {
     this.allConcepts = this.bokService.getRelationsPrent(allRelations, allConcepts);
   }
 
-  getParents(concept: string): Set<string> {
-    let parents: Set<string> = new Set();
-
-    const findParents = (node: TreeNode) => {
-      for (let relation of node.relations) {
-        if (relation.type === RelationType.IsSubconceptOf) {
-          let parentNode = this.dijkstraService.getTreeNode(relation.target);
-          if (this.dijkstraService.getKnowledgeNodes().has(parentNode.code)) {
-            parents.add(parentNode.code);
-          } else if (parentNode){
-            findParents(parentNode);
-          }
-        }
-      }
-    }
-
-    if (this.dijkstraService.getKnowledgeNodes().has(concept) || concept === this.dijkstraService.mainNode) {
-      parents.add(concept);
-    } else {
-      let currentNode = this.dijkstraService.getTreeNode(concept);
-      if (currentNode) findParents(currentNode);
-    }
-
-    return parents;
-  }
-
   getStatisticsNumberOfConcepts() {
     const resource1Concepts = new Array().concat(this.selectedMatch.notMatchConcepts1, this.selectedMatch.partialMatchConcepts1, this.selectedMatch.commonConcepts);
     this.numberOfConcepts1 = this.getNumberOfConcepts(resource1Concepts);
@@ -279,12 +242,11 @@ export class DetailComponent implements OnInit {
     let i = 0;
 
     conceptsToAnalize.forEach(bok1 => {
-      const codes = this.getParents(bok1.code ? bok1.code : bok1);
+      const codes = this.dijkstraService.getParents(bok1.code ? bok1.code : bok1);
       codes.forEach( code => {
-        let parent = code === 'GIST' ? 'GI' : code;
-        if (this.kaCodes[parent] !== undefined) {
-          i = numConcepts[parent] !== undefined ? numConcepts[parent] + 1 : 1;
-          numConcepts[parent] = i;
+        if (this.dijkstraService.getTreeNode(code).name !== undefined) {
+          i = numConcepts[code] !== undefined ? numConcepts[code] + 1 : 1;
+          numConcepts[code] = i;
         }
       });
     });

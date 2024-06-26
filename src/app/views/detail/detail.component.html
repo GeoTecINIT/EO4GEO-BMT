@@ -160,8 +160,10 @@
                     </button>
                   </div>
                   <div class="col-md-4 ma">
-                    <p>Matching distribution </p>
-                    <canvas appChartConcepts width="800" height="450" style="height: 0" ></canvas>
+                    <p>Matching distribution{{chartCommonRef.multiParentsMatching ? "*" : ""}}</p>
+                    <canvas appChartConcepts #chartCommonRef="appChartConcepts" width="800" height="450" style="height: 0" ></canvas>
+                    <br>
+                    <p *ngIf="chartCommonRef.multiParentsMatching"><small>*Some concepts may belong to more than one knowledge area.</small></p>
                   </div>
                   <div >
                     <p>Percentage of BoK concepts covered </p>
@@ -321,8 +323,10 @@
                       </div>
                       <div class="row card-body" style="background-color: #faf9f8; margin-left: 5px;">
                       <div class="row" style="margin-left: 5px;">
-                        <p> Not Matching distribution</p>
-                        <canvas appChartNotCommon1  width="800" height="200" style="height: 0"></canvas>
+                        <p> Not Matching distribution{{chartNoCommon1.multiParentsMatching ? "*" : ""}}</p>
+                        <canvas appChartNotCommon1 #chartNoCommon1="appChartNotCommon1" width="800" height="200" style="height: 0"></canvas>
+                        <br>
+                        <p *ngIf="chartNoCommon1.multiParentsMatching"><small>*Some concepts may belong to more than one knowledge area.</small></p>
                       </div>
                     </div>
                   </div>
@@ -343,8 +347,10 @@
                       </div>
                       <div class="row card-body" style="background-color: #faf9f8; margin-left: 5px;">
                         <div class="row" style="margin-left: 5px;">
-                          <p> Not Matching distribution</p>
-                          <canvas appChartNotCommon2 id="notMatch2"  width="800" height="200" style="height: 0"></canvas>
+                          <p> Not Matching distribution{{chartNoCommon2.multiParentsMatching ? "*" : ""}}</p>
+                          <canvas appChartNotCommon2 #chartNoCommon2="appChartNotCommon2" width="800" height="200" style="height: 0"></canvas>
+                          <br>
+                          <p *ngIf="chartNoCommon2.multiParentsMatching"><small>*Some concepts may belong to more than one knowledge area.</small></p>
                         </div>
                       </div>
                     </div>
