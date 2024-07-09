@@ -14,6 +14,7 @@ import { DijkstraService } from '../../services/dijkstra.service';
 import { RelationType, TreeNode } from '../../model/treeNode.model';
 import { ChartNotCommon1Directive } from './chart-not-common1.directive';
 import { ChartNotCommon2Directive } from './chart-not-common2.directive';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-detail',
@@ -78,20 +79,23 @@ export class DetailComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.getMatchId();
-    setTimeout(() => {
-      this.getRelations();
-      this.getStatisticsNumberOfConcepts();
-    }, 5000);
+    this.getMatchId().subscribe(() => {
+      this.bokService.isDataLoaded().subscribe(loaded => {
+        if (loaded) {
+          this.getRelations();
+          this.getStatisticsNumberOfConcepts();
+        }
+      });
+    });
   }
-  getMatchId(): void {
+
+  getMatchId(): Observable<void> {
     const _id = this.route.snapshot.paramMap.get('name');
     this.skillsMatch = [];
     this.fieldsMatch = [];
     this.transvSkillsMatch = [];
-     this.matchService
-      .getMatchById(_id)
-      .subscribe(profile => {
+    return this.matchService.getMatchById(_id).pipe(
+      map(profile => {
         this.selectedMatch = profile;
         this.skillsNotMatch1 = [];
         this.skillsNotMatch2 = [];
@@ -156,7 +160,7 @@ export class DetailComponent implements OnInit {
           });
         }
         this.transvSkillsMatch.sort();
-      });
+      }));
   }
 
   downloadResource(url: string) {

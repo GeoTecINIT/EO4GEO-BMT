@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { NULL_INJECTOR } from '@angular/core/src/render3/component';
 import { AngularFireDatabase } from '@angular/fire/database';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { filter, take } from 'rxjs/operators';
 
 export interface BoKConcept {
   permalink?: String;
@@ -17,8 +17,7 @@ export interface BoKConcept {
 export class BokService {
   public concepts: any[];
   public relations: any[];
-  public allRelation: Observable<any>;
-  public allConcepts: Observable<any>;
+  private dataLoadedSubject: ReplaySubject<boolean> = new ReplaySubject<boolean>(1);
 
   public currentVNumber = null;
   public foundConcept = null;
@@ -37,6 +36,8 @@ export class BokService {
         this.relations = data['current']['relations'];
         this.currentVNumber = data['current']['version'];
         this.searchPreviousConceptsDB(data);
+        this.dataLoadedSubject.next(true);
+        this.dataLoadedSubject.complete();
       });
 
 
@@ -50,6 +51,13 @@ export class BokService {
           this.currentVNumber = action;
           this.searchPreviousConceptsDB();
         }); */
+  }
+
+  public isDataLoaded(): Observable<boolean> {
+    return this.dataLoadedSubject.asObservable().pipe(
+      filter(loaded => loaded),
+      take(1)
+    );
   }
 
   parseConcepts(dbRes) {
