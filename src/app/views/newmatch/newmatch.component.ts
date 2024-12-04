@@ -139,6 +139,9 @@ export class NewmatchComponent implements OnInit {
     TA: 'Thematic and application domains',
     WB: 'Web-based GI',
     GI: 'Geographic Information Science and Technology',
+    SA: 'Satellite',
+    SC: 'Satellite Communication',
+    GN: 'GNSS'
   };
 
   formGroup = this.fb.group({
