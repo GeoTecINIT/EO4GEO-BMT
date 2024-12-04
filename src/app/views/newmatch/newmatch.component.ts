@@ -1199,6 +1199,9 @@ export class NewmatchComponent implements OnInit {
       'bok-SH': '#c7c7c7',
       'bok-TA': '#bcbd22',
       'bok-WB': '#07561e',
+      'bok-GN' : "#1ca8dd",
+      'bok-SC' : "#ffcc00",
+      'bok-SA' : "#ff9f4a",
       'bok-no': '#17becf',
     };
     return colors['bok-' + code];
