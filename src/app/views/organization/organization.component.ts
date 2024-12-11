@@ -46,7 +46,7 @@ export class OrganizationComponent implements OnInit {
             // Load organizations
             this.organizationService.subscribeToOrganizations()
               .subscribe(res => {
-                this.allOrgs = res;
+                this.allOrgs = res.sort((a, b) => (a.name.trim().toLowerCase() > b.name.trim().toLowerCase()) ? 1 : -1);
                 this.filterOrgs();
               });
           }
@@ -167,7 +167,7 @@ export class OrganizationComponent implements OnInit {
   }
 
   deleteUserFromOrg(user, org) {
-    if (org.admin.length > 1 && user) {
+    if (user && org && (org.admin.length > 1 || (org.admin.length == 1 && !org.admin.includes(user._id)))) {
       const indexToRemove = user.organizations.indexOf(org._id);
       if (indexToRemove !== -1) {
         user.organizations.splice(indexToRemove, 1);
@@ -295,6 +295,9 @@ export class OrganizationComponent implements OnInit {
         this.msgUsrError = 'Can not remove the only admin! Remove organization if you prefer.';
       }
     }
+    // Update joinOrg
+    if (this.joinOrg) this.joinOrg = this.currentOrg;
+    // Update Firebase Organization
     this.organizationService.updateOrganizationWithId(this.orgs[orgIndex]._id, this.orgs[orgIndex]);
     const userSub = this.userService.getUserById(userId).subscribe(userDB => {
       if (userDB) {
@@ -331,9 +334,9 @@ export class OrganizationComponent implements OnInit {
         this.joinOrg.regular.push(this.user._id);
         this.organizationService.updateOrganizationWithId(this.joinOrg._id, this.joinOrg);
 
-        const userSub = this.userService.getUserById(this.user._id).subscribe(user => {
-           if (user) {
-             const u = new User(user);
+        const userSub = this.userService.getUserById(this.user._id).subscribe(userDB => {
+           if (userDB) {
+             const u = new User(userDB);
                // Add org id to user
                if (!u.organizations) {
                  u.organizations = [];

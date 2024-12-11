@@ -45,7 +45,7 @@
           </div>
         </div>
 
-        <div class="card-body" *ngIf="orgs && orgs.length>0; else loading">
+        <div class="card-body" *ngIf="orgs else loading">
           <div *ngFor="let o of orgs; index as i;">
             <div *ngIf="(o.admin.indexOf(user._id) > -1  || o.regular.indexOf(user._id) > -1);">
               <form>

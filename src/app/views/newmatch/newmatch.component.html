@@ -6,6 +6,10 @@
 
         <div class="card-header">
           <div class="row">
+            <button *ngIf="!isAnonymous && userOrgs.length == 0" type="button"
+              class="btn btn-block btn-link text-secondary" routerLink="/organization">
+              &nbsp;You need to join or create an organization before you can save a Match.
+            </button>
             <div class="col">
               <p *ngIf="userOrgs.length > 0" class="text-primary text-right">Save under organization </p>
             </div>
@@ -17,10 +21,6 @@
                   {{item.name}}
                 </ng-template>
               </ng-select>
-              <button *ngIf="!isAnonymous && userOrgs.length == 0" type="button"
-                class="btn btn-block btn-link text-secondary" routerLink="/organization">
-                &nbsp;You need to join or create an organization before you can save an occupational profile.
-              </button>
             </div>
             <div class="col">
               <p *ngIf="userOrgs.length > 0" class="text-primary text-right">Division </p>
@@ -45,12 +45,12 @@
             </div>
             <div class="col text-right">
               <button type="submit" class="btn btn-pill btn-primary" (click)="saveMatch()" routerLink="/list"
-                *ngIf="!isAnonymous && (model.title != '' && model.description != '' )">
+                *ngIf="!isAnonymous && userOrgs.length > 0 && (model.title != '' && model.description != '' ) && saveOrg">
                 Save
               </button>
-              <button type="submit" class="btn btn-pill btn-primary"
-                *ngIf="!isAnonymous && (model.title == '' || model.description == '' )"
-                tooltip="Add a title and a description to save your Match." [disabled]="!saveOrg">
+              <button type="submit" class="btn btn-pill btn-primary" disabled aria-disabled="true"
+                *ngIf="!isAnonymous && userOrgs.length > 0 && ((model.title == '' || model.description == '' ) || !saveOrg)"
+                tooltip="Select a organization and add a title and a description to save your Match.">
                 Save
               </button>
               <button type="submit" class="btn btn-pill btn-primary" (click)="openModal()" *ngIf="isAnonymous">
@@ -1036,14 +1036,14 @@
 
           <div class="col-md-12 text-right">
             <button type="submit" class="btn btn-pill btn-primary" (click)="saveMatch()" routerLink="/list"
-              *ngIf="!isAnonymous && (model.title != '' && model.description != '' )">
-              Save
-            </button>
-            <button type="submit" class="btn btn-pill btn-primary"
-              *ngIf="!isAnonymous && (model.title == '' || model.description == '' )"
-              tooltip="Add a title and a description to save your Match." [disabled]="!saveOrg">
-              Save
-            </button>
+                *ngIf="!isAnonymous && userOrgs.length > 0 && (model.title != '' && model.description != '' ) && saveOrg">
+                Save
+              </button>
+              <button type="submit" class="btn btn-pill btn-primary" disabled aria-disabled="true"
+                *ngIf="!isAnonymous && userOrgs.length > 0 && ((model.title == '' || model.description == '' ) || !saveOrg)"
+                tooltip="Select a organization and add a title and a description to save your Match.">
+                Save
+              </button>
             <button type="submit" class="btn btn-pill btn-primary" (click)="openModal()" *ngIf="isAnonymous">
               Login to save
             </button>
