@@ -53,7 +53,7 @@ export class UserService {
     this.db
       .collection(collection)
       .doc<User>(userId)
-      .update(updatedUser);
+      .update({ ...updatedUser });
   }
 
   addNewUser(user: firebase.User) {

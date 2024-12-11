@@ -232,7 +232,7 @@ export class NewmatchComponent implements OnInit {
                 }
               });
             });
-          }
+          } else this.isAnonymous = false;
         });
       }
     });
