@@ -5,11 +5,24 @@
       <div class="card card-accent-primary">
 
         <div class="card-header">
+          <div class="row justify-content-center" *ngIf="!isAnonymous && userOrgs.length == 0">
+            <div class="col-auto">
+              <button type="button" class="btn btn-link text-secondary" routerLink="/organization">
+                You need to join or create an organization before you can save a Match.
+              </button>
+            </div>
+            <div class="col-auto">
+              <p class="text-primary text-right">Matching flexibility
+                <span
+                  tooltip="Matching flexibility defines how strict the comparison is. A value of 0 allow only exact matches, while higher values allow partial matching of elements."
+                  class="badge badge-primary badge-pill">i</span>
+              </p>
+            </div>
+            <div class="col-auto">
+              <input type="range" class="form-range" min="0" max="4"  [(ngModel)]="matchingFlexibility" (ngModelChange)="match()">
+            </div>
+          </div>
           <div class="row">
-            <button *ngIf="!isAnonymous && userOrgs.length == 0" type="button"
-              class="btn btn-block btn-link text-secondary" routerLink="/organization">
-              &nbsp;You need to join or create an organization before you can save a Match.
-            </button>
             <div class="col">
               <p *ngIf="userOrgs.length > 0" class="text-primary text-right">Save under organization </p>
             </div>
@@ -33,14 +46,14 @@
                 </ng-template>
               </ng-select>
             </div>
-            <div class="col">
+            <div class="col" *ngIf="!isAnonymous && userOrgs.length > 0">
               <p class="text-primary text-right">Matching flexibility
                 <span
                   tooltip="Matching flexibility defines how strict the comparison is. A value of 0 allow only exact matches, while higher values allow partial matching of elements."
                   class="badge badge-primary badge-pill">i</span>
               </p>
             </div>
-            <div class="col">
+            <div class="col" *ngIf="!isAnonymous && userOrgs.length > 0">
               <input type="range" class="form-range" min="0" max="4"  [(ngModel)]="matchingFlexibility" (ngModelChange)="match()">
             </div>
             <div class="col text-right">
