@@ -5,11 +5,14 @@
       <div class="card card-accent-primary">
 
         <div class="card-header">
+          <div class="row justify-content-center" *ngIf="!isAnonymous && userOrgs.length == 0">
+            <div class="col-auto">
+              <button type="button" class="btn btn-link text-secondary" routerLink="/organization">
+                You need to join or create an organization before you can save a Match.
+              </button>
+            </div>
+          </div>
           <div class="row">
-            <button *ngIf="!isAnonymous && userOrgs.length == 0" type="button"
-              class="btn btn-block btn-link text-secondary" routerLink="/organization">
-              &nbsp;You need to join or create an organization before you can save a Match.
-            </button>
             <div class="col-sm-2 col-md-2">
               <p *ngIf="userOrgs.length > 0" class="text-primary text-right">Save under organization </p>
             </div>
