@@ -4,39 +4,23 @@ import {UserService} from '../../services/user.service';
 import {ActivatedRoute} from '@angular/router';
 import {Match} from '../../model/resources.model';
 import { Chart } from 'chart.js';
+import { DijkstraService } from '../../services/dijkstra.service';
 
 @Directive({
   selector: '[appChartNotCommon1]',
-
+  exportAs: 'appChartNotCommon1'
 })
 export class ChartNotCommon1Directive implements OnInit {
 
   selectedMatch: Match;
   myChart = null;
   statisticsNotMatching1 = [];
-  kaCodes = {
-    AM: 'Analytical Methods',
-    CF: 'Conceptual Foundations',
-    CV: 'Cartography and Visualization',
-    DA: 'Design and Setup of Geographic Information Systems',
-    DM: 'Data Modeling, Storage and Exploitation',
-    GC: 'Geocomputation',
-    GD: 'Geospatial Data',
-    GS: 'GI and Society',
-    IP: 'Image processing and analysis',
-    OI: 'Organizational and Institutional Aspects',
-    PP: 'Physical principles',
-    PS: 'Platforms, sensors and digital imagery',
-    TA: 'Thematic and application domains',
-    WB: 'Web-based GI',
-    GI: 'Geographic Information Science and Technology',
-    SA: 'Satellite',
-    SC: 'Satellite Communication',
-    GN: 'GNSS'
-  };
+  multiParentsMatching = false;
+
   constructor( private el: ElementRef, private matchService: MatchService,
                private userService: UserService,
-               private route: ActivatedRoute) {
+               private route: ActivatedRoute,
+               private dijkstraService: DijkstraService) {
   }
 
   ngOnInit(): void {
@@ -54,16 +38,20 @@ export class ChartNotCommon1Directive implements OnInit {
 
   calculateNotmatchingStatistics() {
     this.statisticsNotMatching1 = [];
+    this.multiParentsMatching = false;
     if (this.selectedMatch.commonConcepts) {
       const tempStats2 = {};
       let tempTotal2 = 0;
       this.selectedMatch.notMatchConcepts1.forEach( nc => {
-        const code = nc.code.slice(0, 2);
-        tempStats2[code] !== undefined ? tempStats2[code]++ : tempStats2[code] = 1;
-        tempTotal2++;
+        let codes: Set<string> = this.dijkstraService.getParents(nc.code);
+        if (codes.size > 1) this.multiParentsMatching = true;
+        codes.forEach( code => {
+          tempStats2[code] !== undefined ? tempStats2[code]++ : tempStats2[code] = 1;
+          tempTotal2++;
+        });
       });
       Object.keys(tempStats2).forEach(k => {
-        const nameKA = k + ' - ' + this.kaCodes[k];
+        const nameKA = k + ' - ' + this.dijkstraService.getTreeNode(k).name;
         this.statisticsNotMatching1.push({ code: nameKA, value: Math.round(tempStats2[k] * 100 / tempTotal2), count: tempStats2[k]  });
       });
     }

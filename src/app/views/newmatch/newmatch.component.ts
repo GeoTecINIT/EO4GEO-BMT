@@ -16,12 +16,13 @@ import { finalize } from 'rxjs/operators';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Chart } from 'chart.js';
 import * as pdfjs from 'pdfjs-dist/build/pdf';
-import { pdfjsworker } from 'pdfjs-dist/build/pdf.worker.entry';
 import { BokService } from '../../services/bok.service';
 import { LoginComponent } from '../login/login.component';
 import * as bok from '@eo4geo/find-in-bok-dataviz';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { environment } from '../../../environments/environment';
+import { DijkstraService } from '../../services/dijkstra.service';
+import { RelationType, TreeNode, TreeRelation } from '../../model/treeNode.model';
 
 
 @Component({
@@ -31,7 +32,7 @@ import { environment } from '../../../environments/environment';
 })
 export class NewmatchComponent implements OnInit {
 
-  model = new Match('', '', '', '', '', '', true, null, null, null, null, null, null, null, '');
+  model = new Match('', '', '', '', '', '', true, null, null, null, null, null, null, null, null, null, '');
 
   selectedMatch: Match;
   _id: string;
@@ -74,6 +75,9 @@ export class NewmatchComponent implements OnInit {
   commonBokConcepts = [];
   notMatchConcepts1 = [];
   notMatchConcepts2 = [];
+  partialMatchConcepts1 = [];
+  partialMatchConcepts2 = [];
+  matchingFlexibility = 2;
 
   skills1 = [];
   skills2 = [];
@@ -107,8 +111,11 @@ export class NewmatchComponent implements OnInit {
   errorFile2 = false;
 
   statisticsMatching = [];
+  multiParentsMatching = false;
   statisticsNotMatching1 = [];
   statisticsNotMatching2 = [];
+  multiParentsNotMatching1 = false;
+  multiParentsNotMatching2 = false;
   statisticsSkills = [];
   statisticsTransversalSkills = [];
   statisticsFields = [];
@@ -123,26 +130,6 @@ export class NewmatchComponent implements OnInit {
   isAnonymous = true;
   type = -1;
   type2 = -1;
-  kaCodes = {
-    AM: 'Analytical Methods',
-    CF: 'Conceptual Foundations',
-    CV: 'Cartography and Visualization',
-    DA: 'Design and Setup of Geographic Information Systems',
-    DM: 'Data Modeling, Storage and Exploitation',
-    GC: 'Geocomputation',
-    GD: 'Geospatial Data',
-    GS: 'GI and Society',
-    IP: 'Image processing and analysis',
-    OI: 'Organizational and Institutional Aspects',
-    PP: 'Physical principles',
-    PS: 'Platforms, sensors and digital imagery',
-    TA: 'Thematic and application domains',
-    WB: 'Web-based GI',
-    GI: 'Geographic Information Science and Technology',
-    SA: 'Satellite',
-    SC: 'Satellite Communication',
-    GN: 'GNSS'
-  };
 
   formGroup = this.fb.group({
     file: [null, Validators.required]
@@ -184,9 +171,6 @@ export class NewmatchComponent implements OnInit {
   currentConcept = 'GIST';
 
   customSelect = 0;
-
-  selectAllChildren = false;
-  allChildren = [];
   buttonClear = 0;
   isLoaded = false;
 
@@ -208,7 +192,8 @@ export class NewmatchComponent implements OnInit {
     // private cd: ChangeDetectorRef,
     private storage: AngularFireStorage,
     public bokService: BokService,
-    private modalService: BsModalService
+    private modalService: BsModalService,
+    private dijkstraService: DijkstraService,
 
   ) {
     this.isAnonymous = true;
@@ -261,6 +246,8 @@ export class NewmatchComponent implements OnInit {
       this.model.commonConcepts = this.commonBokConcepts;
       this.model.notMatchConcepts1 = this.notMatchConcepts1;
       this.model.notMatchConcepts2 = this.notMatchConcepts2;
+      this.model.partialMatchConcepts1 = this.partialMatchConcepts1;
+      this.model.partialMatchConcepts2 = this.partialMatchConcepts2;
       this.model.resource1 = this.resource1;
       this.model.resource2 = this.resource2;
       this.model.orgId = this.saveOrg._id;
@@ -348,7 +335,7 @@ export class NewmatchComponent implements OnInit {
 
   onFileChange1(event) {
     // empty filtered resources to hide EO4GEO content
-    this.filteredResources1 = [];
+    //this.filteredResources1 = [];
     const reader = new FileReader();
     if (event.target.files && event.target.files.length) {
       [this.file1] = event.target.files;
@@ -367,7 +354,7 @@ export class NewmatchComponent implements OnInit {
 
   onFileChange2(event) {
     // empty filtered resources to hide EO4GEO content
-    this.filteredResources2 = [];
+    //this.filteredResources2 = [];
     const reader = new FileReader();
     if (event.target.files && event.target.files.length) {
       [this.file2] = event.target.files;
@@ -389,6 +376,7 @@ export class NewmatchComponent implements OnInit {
     this.notMatchConcepts1 = [];
     this.conceptsName = [];
     this.file1 = null;
+    this.uploadPercent1 = null;
     this.bokConcepts1 = this.getBokConceptsFromResource(res);
     this.skills1 = this.getSkillsFromResource(res);
     this.fields1 = this.getFieldsFromResource(res);
@@ -412,6 +400,7 @@ export class NewmatchComponent implements OnInit {
     this.notMatchConcepts2 = [];
     this.conceptsName = [];
     this.file2 = null;
+    this.uploadPercent2 = null;
     this.bokConcepts2 = this.getBokConceptsFromResource(res);
     this.skills2 = this.getSkillsFromResource(res);
     this.fields2 = this.getFieldsFromResource(res);
@@ -659,151 +648,79 @@ export class NewmatchComponent implements OnInit {
     if (this.bokConcepts1.length > 0 || this.bokConcepts2.length > 0) {
       this.notMatchConcepts1 = [];
       this.notMatchConcepts2 = [];
-      this.conceptsName = [];
-      const bok1Codes = [];
-      const bok2Codes = [];
+      this.partialMatchConcepts1 = [];
+      this.partialMatchConcepts2 = [];
 
-      // retrieve all codes
-      this.bokConcepts1.forEach(bok1 => {
-        bok1Codes.push(bok1.code);
-        if (bok1.allChildren) {
-          bok1.allChildren.forEach(bok1Ch => {
-            bok1Codes.push(bok1Ch.code);
-          });
-        }
-      });
-      this.bokConcepts2.forEach(bok2 => {
-        bok2Codes.push(bok2.code);
-        if (bok2.allChildren) {
-          bok2.allChildren.forEach(bok2Ch => {
-            bok2Codes.push(bok2Ch.code);
-          });
-        }
+      // Create distanceMaps
+      const distancesMap1: Map<string, Map<string, number>> = new Map();
+      this.bokConcepts1.forEach(value => {
+        distancesMap1.set(value.code, this.dijkstraService.getDistanceMap(value.code, this.matchingFlexibility));
       });
 
-      // compare bok1
-      this.bokConcepts1.forEach(bok1 => {
-        if (bok1.allChildren && bok1.allChildren.length > 0) {
-          let foundAllCh = true;
-          const bok1Found = { code: bok1.code, name: bok1.name, allChildren: [] };
-          const bok1NotFound = { code: bok1.code, name: bok1.name, allChildren: [] };
-          bok1.allChildren.forEach(bok1Ch => {
-            if (bok2Codes.indexOf(bok1Ch.code) > -1) {
-              bok1Found.allChildren.push(bok1Ch);
-            } else {
-              bok1NotFound.allChildren.push(bok1Ch);
-              foundAllCh = false;
-            }
-          });
-          // all children found
-          if (foundAllCh) {
-            this.commonBokConcepts.push(bok1); // include children
-          } else {
-            // not all children found
-            if (bok1Found.allChildren.length > 0) {
-              this.commonBokConcepts.push(bok1Found);
-            }
-            if (bok1NotFound.allChildren.length > 0) {
-              this.notMatchConcepts1.push(bok1NotFound);
-            }
-          }
+      const distancesMap2: Map<string, Map<string, number>> = new Map();
+      this.bokConcepts2.forEach(value => {
+        if (!distancesMap1.has(value.code)){
+          distancesMap2.set(value.code, this.dijkstraService.getDistanceMap(value.code, this.matchingFlexibility));
         } else {
-          // no children included
-          if (bok2Codes.indexOf(bok1.code) > -1) {
-            this.commonBokConcepts.push(bok1);
-          } else {
-            this.notMatchConcepts1.push(bok1);
-          }
+          distancesMap2.set(value.code, distancesMap1.get(value.code));
         }
       });
 
-      // compare bok2
-      this.bokConcepts2.forEach(bok2 => {
-        // concept is in bok2
-        if (bok2.allChildren && bok2.allChildren.length > 0) {
-          let foundAllCh2 = true;
-          const bok2Found = { code: bok2.code, name: bok2.name, allChildren: [] };
-          const bok2NotFound = { code: bok2.code, name: bok2.name, allChildren: [] };
-          bok2.allChildren.forEach(bok2Ch => {
-            if (bok1Codes.indexOf(bok2Ch.code) > -1) {
-              bok2Found.allChildren.push(bok2Ch);
-            } else {
-              bok2NotFound.allChildren.push(bok2Ch);
-              foundAllCh2 = false;
-            }
-          });
-          // all children found
-          if (foundAllCh2) {
-            this.commonBokConcepts.push(bok2); // include children
-          } else {
-            // not all children found
-            if (bok2Found.allChildren.length > 0) {
-              this.commonBokConcepts.push(bok2Found);
-            }
-            if (bok2NotFound.allChildren.length > 0) {
-              this.notMatchConcepts1.push(bok2NotFound);
+      // Match concepts using distanceMaps
+      const matchMap: Map<string, number> = new Map();
+      this.bokConcepts1.forEach(value => {
+        distancesMap2.forEach((map: Map<string, number>, key: string) => {
+          if(map.has(value.code)) {
+            const newDistance: number = map.get(value.code);
+            if(!matchMap.has(value.code) || matchMap.get(value.code) < newDistance){
+              matchMap.set(value.code, newDistance);
             }
           }
+        });
+        if(!matchMap.has(value.code)){
+          this.notMatchConcepts1.push(value);
+        } else if (matchMap.get(value.code) !== 100) {
+          value.partialMatch = matchMap.get(value.code);
+          this.partialMatchConcepts1.push(value);
         } else {
-          // no children included
-          if (bok1Codes.indexOf(bok2.code) > -1) {
-            this.commonBokConcepts.push(bok2);
-          } else {
-            this.notMatchConcepts2.push(bok2);
-          }
+          this.commonBokConcepts.push(value);
         }
       });
 
-      /*const removeDuplicatesCommon = [];
-
-      // get all codes included in a concept
-      this.commonBokConcepts.forEach(bokCom => {
-        // bokCom.allCodes ? bokCom.allCodes.push(bokCom.code) : bokCom.allCodes = [];
-        bokCom.allCodes = [];
-        if (bokCom.allChildren) {
-          bokCom.allChildren.forEach(bokComCh => {
-            bokCom.allCodes.push(bokComCh.code);
-          });
-        }
-      });
-      let foundAllCh = true;
-      // check for duplicates in common
-      this.commonBokConcepts.forEach(bokCom => {
-        if (bokCom.allChildren && bokCom.allChildren.length === 0) {
-          // Alone concepts
-          removeDuplicatesCommon.push(bokCom);
-        } else {
-          this.commonBokConcepts.forEach(bokComB => {
-            if (bokCom.code !== bokComB.code) {
-              if (bokCom.allCodes.indexOf(bokComB.code) > -1) { // B concept is in bokCom
-                foundAllCh = true;
-                if (bokComB.allChildren && bokComB.allChildren.length === 0) {
-                  bokComB.allChildren.forEach(bokComBCh => {
-                    if (bokCom.allCodes.indexOf(bokComBCh.code) === -1) { // check all children of B concept
-                      foundAllCh = false;
-                    }
-                  });
-                }
-                if (foundAllCh) { // all children in bokComB are in BokCom
-                  removeDuplicatesCommon.push(bokCom);
-                }
-              }
+      this.bokConcepts2.forEach(value => {
+        distancesMap1.forEach((map: Map<string, number>, key) => {
+          if(map.has(value.code)) {
+            const newDistance: number = map.get(value.code);
+            if(!matchMap.has(value.code) || matchMap.get(value.code) < newDistance){
+              matchMap.set(value.code, newDistance);
             }
-          });
+          }
+        });
+        if(!matchMap.has(value.code)){
+          this.notMatchConcepts2.push(value);
+        } else if (matchMap.get(value.code) !== 100) {
+          value.partialMatch = matchMap.get(value.code);
+          this.partialMatchConcepts2.push(value);
+        } else {
+          this.commonBokConcepts.push(value);
         }
       });
-*/
-      const removeDuplicatesCommon = [];
-      const removeDuplicatesCommonCodes = [];
-      this.commonBokConcepts.forEach(bokCom => {
-        if (removeDuplicatesCommonCodes.indexOf(bokCom.code) === -1) {
-          removeDuplicatesCommon.push(bokCom);
-          removeDuplicatesCommonCodes.push(bokCom.code);
+
+      const commonConceptsSet = new Set<string>();
+      const uniqueCommonConcepts = [];
+      for(let i = 0; i<this.commonBokConcepts.length; i++) {
+        const concept = this.commonBokConcepts[i];
+        if (!commonConceptsSet.has(concept.code)) {
+          commonConceptsSet.add(concept.code);
+          uniqueCommonConcepts.push(concept);
         }
-      });
-      this.commonBokConcepts = removeDuplicatesCommon;
+      }
+      this.commonBokConcepts = uniqueCommonConcepts;
+
 
       this.commonBokConcepts.sort((a, b) => (a.code > b.code) ? 1 : -1);
+      this.partialMatchConcepts1.sort((a, b) => (a.code > b.code) ? 1 : -1);
+      this.partialMatchConcepts2.sort((a, b) => (a.code > b.code) ? 1 : -1);
 
       this.notMatchConcepts1.sort((a, b) => (a.code > b.code) ? 1 : -1);
       this.notMatchConcepts2.sort((a, b) => (a.code > b.code) ? 1 : -1);
@@ -870,22 +787,20 @@ export class NewmatchComponent implements OnInit {
 
   calculateStatistics() {
     this.statisticsMatching = [];
+    this.multiParentsMatching = false;
     if (this.commonBokConcepts) {
       const tempStats = {};
       let tempTotal = 0;
       this.commonBokConcepts.forEach(kn => {
-        let code = this.getParent(kn.code);
-        if (code === undefined) {
-          code = kn.code.slice(0, 2);
-        }
-        if (code === 'GIST') {
-          code = kn.code;
-        }
-        tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
-        tempTotal++;
+        let codes: Set<string> = this.dijkstraService.getParents(kn.code);
+        if (codes.size > 1) this.multiParentsMatching = true;
+        codes.forEach( code => {
+          tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
+          tempTotal++;
+        });
       });
       Object.keys(tempStats).forEach(k => {
-        const nameKA = k + ' - ' + this.kaCodes[k];
+        const nameKA = k + ' - ' + this.dijkstraService.getTreeNode(k).name;
         this.statisticsMatching.push({ code: nameKA, value: Math.round(tempStats[k] * 100 / tempTotal), count: tempStats[k] });
       });
       this.graphStatistics(this.statisticsMatching, 'myChart');
@@ -898,53 +813,35 @@ export class NewmatchComponent implements OnInit {
   calculateNotmatchingStatistics() {
     this.statisticsNotMatching1 = [];
     this.statisticsNotMatching2 = [];
+    this.multiParentsNotMatching1 = false;
+    this.multiParentsNotMatching2 = false;
     if (this.commonBokConcepts) {
       const tempStats2 = {};
       let tempTotal2 = 0;
       this.notMatchConcepts1.forEach(nc => {
-        let code = this.getParent(nc.code);
-        if (code === undefined) {
-          code = nc.code.slice(0, 2);
-        }
-        if (code === 'GIST') {
-          code = nc.code;
-        }
-        tempStats2[code] !== undefined ? tempStats2[code]++ : tempStats2[code] = 1;
-        tempTotal2++;
+        let codes: Set<string> = this.dijkstraService.getParents(nc.code);
+        if (codes.size > 1) this.multiParentsNotMatching1 = true;
+        codes.forEach( code => {
+          tempStats2[code] !== undefined ? tempStats2[code]++ : tempStats2[code] = 1;
+          tempTotal2++;
+        });
       });
       Object.keys(tempStats2).forEach(k => {
-        let nameKA = '';
-        if (this.kaCodes[k] !== undefined) {
-          nameKA = k + ' - ' + this.kaCodes[k];
-        } else {
-          const nameConcept = this.conceptsName[k];
-          if (nameConcept) {
-            nameKA = k + ' - ' + nameConcept.split(']')[1];
-          }
-        }
+        const nameKA = k + ' - ' + this.dijkstraService.getTreeNode(k).name;
         this.statisticsNotMatching1.push({ code: nameKA, value: Math.round(tempStats2[k] * 100 / tempTotal2), count: tempStats2[k] });
       });
       const tempStats3 = {};
       let tempTotal3 = 0;
       this.notMatchConcepts2.forEach(nc => {
-        let code = this.getParent(nc.code);
-        if (code === undefined) {
-          code = nc.code.slice(0, 2);
-        }
-        if (code === 'GIST') {
-          code = nc.code;
-        }
-        tempStats3[code] !== undefined ? tempStats3[code]++ : tempStats3[code] = 1;
-        tempTotal3++;
+        let codes: Set<string> = this.dijkstraService.getParents(nc.code);
+        if (codes.size > 1) this.multiParentsNotMatching2 = true;
+        codes.forEach( code => {
+          tempStats3[code] !== undefined ? tempStats3[code]++ : tempStats3[code] = 1;
+          tempTotal3++;
+        });
       });
       Object.keys(tempStats3).forEach(k => {
-        let nameKA = '';
-        if (this.kaCodes[k] !== undefined) {
-          nameKA = k + ' - ' + this.kaCodes[k];
-        } else if (this.conceptsName[k] !== undefined) {
-          const nameConcept = this.conceptsName[k];
-          nameKA = k + ' - ' + nameConcept.split(']')[1];
-        }
+        const nameKA = k + ' - ' + this.dijkstraService.getTreeNode(k).name;
         this.statisticsNotMatching2.push({ code: nameKA, value: Math.round(tempStats3[k] * 100 / tempTotal3), count: tempStats3[k] });
       });
     }
@@ -957,18 +854,14 @@ export class NewmatchComponent implements OnInit {
       const tempStats = {};
       let tempTotal = 0;
       this.commonSkills.forEach(nc => {
-        let code = this.getParent(nc);
-        if (code === undefined) {
-          code = nc.slice(0, 2);
-        }
-        if (code === 'GIST') {
-          code = nc;
-        }
-        tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
-        tempTotal++;
+        let codes: Set<string> = this.dijkstraService.getParents(nc.code);
+        codes.forEach( code => {
+          tempStats[code] !== undefined ? tempStats[code]++ : tempStats[code] = 1;
+          tempTotal++;
+        });
       });
       Object.keys(tempStats).forEach(k => {
-        const nameKA = k + ' - ' + this.kaCodes[k];
+        const nameKA = k + ' - ' + this.dijkstraService.getTreeNode(k).name;
         this.statisticsSkills.push({ code: nameKA, value: Math.round(tempStats[k] * 100 / tempTotal) });
       });
     }
@@ -1218,33 +1111,6 @@ export class NewmatchComponent implements OnInit {
     }
   }
 
-  getParent(concept) {
-    let parentCode = '';
-    let parentNode = [];
-    let res = '';
-    this.allConcepts.forEach(con => {
-      if (con.code === concept) {
-        parentNode = con;
-        if (parentNode['parent'] && parentNode['parent']['code'] && parentNode['parent']['code'] !== 'GIST') {
-          while (parentCode !== 'GIST' && parentNode['code'] !== 'GIST') {
-            if (parentNode['parent']['parent']) {
-              parentNode = parentNode['parent'];
-              parentCode = parentNode['parent']['code'];
-            } else {
-              parentCode = 'GIST';
-            }
-          }
-        } else {
-          parentNode['code'] = con.code.slice(0, 2);
-        }
-      }
-    });
-    if (parentNode !== undefined) {
-      res = parentNode['code'] === 'GIST' ? concept : parentNode['code'];
-    }
-    return res;
-  }
-
 
   getStatisticsNumberOfConcepts() {
     this.numberOfConcepts1 = this.getNumberOfConcepts(this.bokConcepts1);
@@ -1275,32 +1141,13 @@ export class NewmatchComponent implements OnInit {
     let i = 0;
 
     conceptsToAnalize.forEach(bok1 => {
-      let parent = '';
-      if (bok1.code) {
-        parent = this.getParent(bok1.code);
-      } else {
-        parent = this.getParent(bok1);
-      }
-      if (parent !== '') {
-        if (this.kaCodes[parent] !== undefined) {
-          i = numConcepts[parent] !== undefined ? numConcepts[parent] + 1 : 1;
-          numConcepts[parent] = i;
+      const codes = this.dijkstraService.getParents(bok1.code ? bok1.code : bok1);
+      codes.forEach( code => {
+        if (this.dijkstraService.getTreeNode(code).name !== undefined) {
+          i = numConcepts[code] !== undefined ? numConcepts[code] + 1 : 1;
+          numConcepts[code] = i;
         }
-        if (bok1.allChildren) {
-          bok1.allChildren.forEach(bok1Ch => {
-            //  let parent = '';
-            if (bok1Ch.code) {
-              parent = this.getParent(bok1Ch.code);
-            } else {
-              parent = this.getParent(bok1Ch);
-            }
-            if (this.kaCodes[parent] !== undefined) {
-              i = numConcepts[parent] !== undefined ? numConcepts[parent] + 1 : 1;
-              numConcepts[parent] = i;
-            }
-          });
-        }
-      }
+      });
     });
     return numConcepts;
   }
@@ -1413,14 +1260,6 @@ export class NewmatchComponent implements OnInit {
     }
   }
 
-  allDescendants(node) {
-    for (let i = 0; i < node.children.length; i++) {
-      const child = node.children[i];
-      this.allChildren.push({ code: node.children[i].code, name: '[' + node.children[i].code + '] ' + node.children[i].name });
-      this.allDescendants(child);
-    }
-  }
-
   addBokKnowledge() {
     this.getRelations();
     this.conceptsName = [];
@@ -1429,19 +1268,9 @@ export class NewmatchComponent implements OnInit {
       .textContent;
     const conceptId = concept.split(']')[0].substring(1);
 
-    this.allChildren = [];
-    if (this.selectAllChildren) {
-      const node = this.getNode(conceptId);
-      this.allDescendants(node);
-    }
-
     if (this.customSelect === 1) {
       this.notMatchConcepts1 = [];
-      this.bokConcepts1.push({ code: conceptId, name: concept, allChildren: this.allChildren });
-      // Adds all children to array of displayed concepts
-      /*   this.allChildren.forEach(child => {
-          this.bokConcepts1.push({ code: child.code, name: child.name });
-        }); */
+      this.bokConcepts1.push({ code: conceptId, name: concept});
       if (this.resource1 == null || this.resource1.name !== 'Custom selection') {
         this.resource1 = { name: 'Custom selection', concepts: [] };
       }
@@ -1449,11 +1278,7 @@ export class NewmatchComponent implements OnInit {
 
     } else {
       this.notMatchConcepts2 = [];
-      this.bokConcepts2.push({ code: conceptId, name: concept, allChildren: this.allChildren });
-      // Adds all children to array of displayed concepts
-      /* this.allChildren.forEach(child => {
-        this.bokConcepts2.push({ code: child.code, name: child.name });
-      }); */
+      this.bokConcepts2.push({ code: conceptId, name: concept});
       if (this.resource2 == null || this.resource2.name !== 'Custom selection') {
         this.resource2 = { name: 'Custom selection', concepts: [] };
       }

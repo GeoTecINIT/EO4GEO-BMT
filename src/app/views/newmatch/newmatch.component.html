@@ -7,16 +7,26 @@
         <div class="card-header">
           <div class="row justify-content-center" *ngIf="!isAnonymous && userOrgs.length == 0">
             <div class="col-auto">
-              <button type="button" class="btn btn-link text-secondary" routerLink="/organization">
+              <a class="text-secondary" routerLink="/organization">
                 You need to join or create an organization before you can save a Match.
-              </button>
+              </a>
+            </div>
+            <div class="col-auto">
+              <p class="text-primary text-right">Matching flexibility
+                <span
+                  tooltip="Matching flexibility defines how strict the comparison is. A value of 0 allow only exact matches, while higher values allow partial matching of elements."
+                  class="badge badge-primary badge-pill">i</span>
+              </p>
+            </div>
+            <div class="col-auto">
+              <input type="range" class="form-range" min="0" max="4"  [(ngModel)]="matchingFlexibility" (ngModelChange)="match()">
             </div>
           </div>
           <div class="row">
-            <div class="col-sm-2 col-md-2">
+            <div class="col">
               <p *ngIf="userOrgs.length > 0" class="text-primary text-right">Save under organization </p>
             </div>
-            <div class="col-sm-4 col-md-4">
+            <div class="col">
               <ng-select *ngIf="userOrgs.length > 0 && userOrgs.length == currentUser.organizations.length"
                 [items]="userOrgs" name="userOrgs" bindLabel="name" [multiple]="false" [(ngModel)]="saveOrg"
                 (change)="loadDivisions()">
@@ -25,10 +35,10 @@
                 </ng-template>
               </ng-select>
             </div>
-            <div class="col-sm-2 col-md-2">
+            <div class="col">
               <p *ngIf="userOrgs.length > 0" class="text-primary text-right">Division </p>
             </div>
-            <div class="col-sm-2 col-md-2">
+            <div class="col">
               <ng-select *ngIf="userDivisions.length > 0" [items]="userDivisions" name="userDivisions" bindLabel="name"
                 [multiple]="false" [(ngModel)]="saveDiv">
                 <ng-template ng-optgroup-tmp let-item="item">
@@ -36,7 +46,17 @@
                 </ng-template>
               </ng-select>
             </div>
-            <div class="col-sm-2 col-md-2 text-right">
+            <div class="col" *ngIf="!isAnonymous && userOrgs.length > 0">
+              <p class="text-primary text-right">Matching flexibility
+                <span
+                  tooltip="Matching flexibility defines how strict the comparison is. A value of 0 allow only exact matches, while higher values allow partial matching of elements."
+                  class="badge badge-primary badge-pill">i</span>
+              </p>
+            </div>
+            <div class="col" *ngIf="!isAnonymous && userOrgs.length > 0">
+              <input type="range" class="form-range" min="0" max="4"  [(ngModel)]="matchingFlexibility" (ngModelChange)="match()">
+            </div>
+            <div class="col text-right">
               <button type="submit" class="btn btn-pill btn-primary" (click)="saveMatch()" routerLink="/list"
                 *ngIf="!isAnonymous && userOrgs.length > 0 && (model.title != '' && model.description != '' ) && saveOrg">
                 Save
@@ -288,9 +308,6 @@
                     <a (click)="removeCustomConcept1(mk)"> <i class="fa fa-close"></i> </a>
                     <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                       {{mk.name}} </a>
-                    <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                      (click)="customBokModal.show(); loadCustomModal(mk, true)"> [+ {{mk.allChildren.length}}
-                      Subconcepts]</span>
                   </button>
                 </div>
                 <br>
@@ -528,9 +545,6 @@
                     <a (click)="removeCustomConcept2(mk)"> <i class="fa fa-close"></i> </a>
                     <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                       {{mk.name}} </a>
-                    <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                      (click)="customBokModal.show(); loadCustomModal(mk, true)">[+ {{mk.allChildren.length}}
-                      Subconcepts]</span>
                   </button>
                 </div>
                 <br>
@@ -638,17 +652,16 @@
                     <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                       {{ mk.name}}
                     </a>
-                    <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                      (click)="customBokModal.show(); loadCustomModal(mk, false)">[+ {{mk.allChildren.length}}
-                      Subconcepts]</span>
                   </button>
                 </div>
                 <div class="col-md-4 ma">
-                  <p *ngIf="commonBokConcepts.length > 0 ">Matching distribution
+                  <p *ngIf="commonBokConcepts.length > 0 ">Matching distribution{{multiParentsMatching ? "*" : ""}}
                     <span tooltip="The overall distribution of matching concepts, ordered by knowledge area."
                       class="badge badge-primary badge-pill">i</span>
                   </p>
                   <canvas id="myChart" width="800" [height]="450" style="height: 0"></canvas>
+                  <br>
+                  <p *ngIf="multiParentsMatching"><small>*Some concepts may belong to more than one knowledge area.</small></p>
                 </div>
                 <div [hidden]="resource1 !== null && resource2 !== null && commonBokConcepts.length == 0"
                   *ngIf="bokConcepts1.length > 0 && bokConcepts2.length > 0">
@@ -710,6 +723,88 @@
                 </div>
               </div>
 
+              <div *ngIf="partialMatchConcepts1.length > 0 || partialMatchConcepts2.length > 0">
+                <div class="card-header">
+                  <h5> <strong>Partial matching concepts </strong>
+                    <span
+                      tooltip="BoK concepts with partial matches: These are concepts that share some similarity between the two resources."
+                      class="badge badge-primary badge-pill">i</span>
+                  </h5>
+                </div>
+                <div class="container row col-md-12">
+                  <div class="col-sm-6 col-md-6">
+                    <div class="card card-accent-secondary">
+                      <div class="card-header">
+                        <h6 *ngIf="resource1">{{resource1.name}}</h6>
+                      </div>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="row text-center ma">
+                          <button *ngFor="let mk of partialMatchConcepts1" type="button" class="btn btn-pill"
+                            [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
+                            <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
+                              {{mk.name}}
+                            </a>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="col text-center ma">
+                          <div *ngFor="let k of partialMatchConcepts1" class="row">
+                            <div class="col-md-4">
+                              <div>
+                                <small class="text-muted">{{k.code}}: {{k.partialMatch}}%</small>
+                              </div>
+                            </div>
+                            <div class="col-md-6" style="padding-top: 10px;">
+                              <div class="progress progress-xs">
+                                <div class="progress-bar" [ngClass]="'bok-' + ( k.code | slice:0:2 )" role="progressbar"
+                                  aria-valuenow="k.partialMatch" [style.width.%]="k.partialMatch" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-6 col-md-6">
+                    <div class="card card-accent-secondary">
+                      <div class="card-header">
+                        <h6 *ngIf="resource2">{{resource2.name}}</h6>
+                      </div>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="row text-center ma">
+                          <button *ngFor="let mk of partialMatchConcepts2" type="button" class="btn btn-pill"
+                            [ngClass]="'bok-' + ( mk.code | slice:0:2 )">
+                            <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
+                              {{mk.name}}
+                            </a>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="card-body" style="background-color: #faf9f8">
+                        <div class="col text-center ma">
+                          <div *ngFor="let k of partialMatchConcepts2" class="row">
+                            <div class="col-md-4">
+                              <div>
+                                <small class="text-muted">{{k.code}}: {{k.partialMatch}}%</small>
+                              </div>
+                            </div>
+                            <div class="col-md-6" style="padding-top: 10px;">
+                              <div class="progress progress-xs">
+                                <div class="progress-bar" [ngClass]="'bok-' + ( k.code | slice:0:2 )" role="progressbar"
+                                  aria-valuenow="k.partialMatch" [style.width.%]="k.partialMatch" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>       
+                </div>
+              </div>
+
               <div class="card-header">
                 <h5><strong> Differing concepts </strong>
                   <span
@@ -730,16 +825,14 @@
                           <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                             {{mk.name}}
                           </a>
-                          <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                            (click)="customBokModal.show(); loadCustomModal(mk, false)">[+ {{mk.allChildren.length}}
-                            Subconcepts]</span>
                         </button>
                       </div>
                     </div>
                     <div class="row card-body" style="background-color: #faf9f8; margin-left: 5px;">
-                      <p *ngIf="notMatchConcepts1.length > 0"> Not Matching distribution</p>
+                      <p *ngIf="notMatchConcepts1.length > 0"> Not Matching distribution{{multiParentsNotMatching1 ? "*" : ""}}</p>
                       <canvas id="notMatch1" width="800" height="200" style="height: 0"></canvas>
-
+                      <br>
+                      <p *ngIf="multiParentsNotMatching1"><small>*Some concepts may belong to more than one knowledge area.</small></p>
                     </div>
                   </div>
                 </div>
@@ -756,16 +849,14 @@
                           <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                             {{mk.name}}
                           </a>
-                          <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                            (click)="customBokModal.show(); loadCustomModal(mk, false)">[+ {{mk.allChildren.length}}
-                            Subconcepts]</span>
                         </button>
                       </div>
                     </div>
                     <div class="row card-body" style="background-color: #faf9f8; margin-left: 5px;">
-                      <p *ngIf="notMatchConcepts2.length > 0 ">Not Matching distribution</p>
+                      <p *ngIf="notMatchConcepts2.length > 0 ">Not Matching distribution{{multiParentsNotMatching2 ? "*" : ""}}</p>
                       <canvas id="notMatch2" width="800" height="200" style="height: 0"></canvas>
-
+                      <br>
+                      <p *ngIf="multiParentsNotMatching2"><small>*Some concepts may belong to more than one knowledge area.</small></p>
                     </div>
                   </div>
                 </div>
@@ -1008,9 +1099,6 @@
                     <a (click)="removeCustomConcept1(mk)"> <i class="fa fa-close"></i> </a>
                     <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                       {{mk.name}} </a>
-                    <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                      (click)="customBokModal.show(); loadCustomModal(mk, true)">[+ {{mk.allChildren.length}}
-                      Subconcepts]</span>
                   </button>
                 </div>
                 <div
@@ -1021,9 +1109,6 @@
                     <a (click)="removeCustomConcept2(mk)"> <i class="fa fa-close"></i> </a>
                     <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                       {{mk.name}} </a>
-                    <span *ngIf="mk.allChildren && mk.allChildren.length > 0"
-                      (click)="customBokModal.show(); loadCustomModal(mk, true)">[+ {{mk.allChildren.length}}
-                      Subconcepts]</span>
                   </button>
                 </div>
               </div>
@@ -1055,32 +1140,11 @@
               <div class="col-lg-6 col-sm-6 text-left">
                 <button type="button" class="btn btn-primary" style="float: left" (click)="addBokKnowledge()"> Select
                 </button>
-                <!--      <input type="checkbox" style="margin-left: 10px; margin-top: 10px;" [(ngModel)]="selectAllChildren" />
-                Select all subconcepts -->
                 <button type="button" class="btn btn-danger" style="float: right"
                   (click)="bokModal.hide()">Finish</button>
               </div>
 
               <div class="col-lg-6 col-sm-6">
-                <!--              <div class="row text-center mb-1">
-                  <div class="col-md-8">
-                    <div class="input-group">
-                      <div class="input-group-prepend" dropdown>
-                        <button type="button" class="btn btn-primary">
-                          <i class="fa fa-search"></i>
-                        </button>
-                      </div>
-                      <input #searchInput type="text" id="input-competence-filter" name="input-competence-filter"
-                        class="form-control" [(ngModel)]="searchInputField" (keyup)="searchInBok(searchInput.value)"
-                        placeholder="Search Knowledge" />
-                    </div>
-                  </div>
-                  <div class="col-md-2" style="margin-right: 0;margin-left: auto;">
-                    <button type="button" class="btn btn-primary" (click)="addBokKnowledge()"> Select </button>
-                  </div>
-                  <div class="col-md-2" style="margin-right: 0;margin-left: auto;">
-                    <button type="button" class="btn btn-danger" (click)="bokModal.hide()">Finish</button> </div>
-                </div> -->
                 <div id="bubbles">
                 </div>
               </div>
@@ -1177,8 +1241,6 @@
                   <a *ngIf="isAbleToEditModal" (click)="removeCustomSubConcept(mk)"> <i class="fa fa-close"></i> </a>
                   <a href="{{this.bokService.getConceptInfoByCode(mk.code).permalink}}" target="_blank">
                     {{mk.name}} </a>
-                  <!--  <span *ngIf="mk.allChildren && mk.allChildren.length > 0">[+ {{mk.allChildren.length}}
-                    Subconcepts]</span> -->
                 </button>
               </div>
             </div>

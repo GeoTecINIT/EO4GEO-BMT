@@ -10,6 +10,11 @@ import { AngularFireStorage } from '@angular/fire/storage';
 import {BokService} from '../../services/bok.service';
 import { Chart } from 'chart.js';
 import { ChartConceptsDirective } from './chart-concepts.directive';
+import { DijkstraService } from '../../services/dijkstra.service';
+import { RelationType, TreeNode } from '../../model/treeNode.model';
+import { ChartNotCommon1Directive } from './chart-not-common1.directive';
+import { ChartNotCommon2Directive } from './chart-not-common2.directive';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-detail',
@@ -21,26 +26,6 @@ export class DetailComponent implements OnInit {
   statistics = [];
   isAnonymous = null;
   myChart = null;
-  kaCodes = {
-    AM: 'Analytical Methods',
-    CF: 'Conceptual Foundations',
-    CV: 'Cartography and Visualization',
-    DA: 'Design and Setup of Geographic Information Systems',
-    DM: 'Data Modeling, Storage and Exploitation',
-    GC: 'Geocomputation',
-    GD: 'Geospatial Data',
-    GS: 'GI and Society',
-    IP: 'Image processing and analysis',
-    OI: 'Organizational and Institutional Aspects',
-    PP: 'Physical principles',
-    PS: 'Platforms, sensors and digital imagery',
-    TA: 'Thematic and application domains',
-    WB: 'Web-based GI',
-    GI: 'Geographic Information Science and Technology',
-    SA: 'Satellite',
-    SC: 'Satellite Communication',
-    GN: 'GNSS'
-  };
 
   selectedMatch: Match;
   currentUser: User = new User();
@@ -68,6 +53,10 @@ export class DetailComponent implements OnInit {
 
 
   @ViewChild('dangerModal') public dangerModal: ModalDirective;
+  @ViewChild('chartCommonRef') public chartCommonRef: ChartConceptsDirective;
+  @ViewChild('chartNoCommon1') public chartNoCommon1: ChartNotCommon1Directive;
+  @ViewChild('chartNoCommon1') public chartNoCommon2: ChartNotCommon2Directive;
+
   constructor(
     private matchService: MatchService,
     private userService: UserService,
@@ -75,6 +64,7 @@ export class DetailComponent implements OnInit {
     private storage: AngularFireStorage,
     public afAuth: AngularFireAuth,
     public bokService: BokService,
+    private dijkstraService: DijkstraService,
   ) {
     this.afAuth.auth.onAuthStateChanged(user => {
       if (user) {
@@ -89,20 +79,23 @@ export class DetailComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.getMatchId();
-    setTimeout(() => {
-      this.getRelations();
-      this.getStatisticsNumberOfConcepts();
-    }, 5000);
+    this.getMatchId().subscribe(() => {
+      this.bokService.isDataLoaded().subscribe(loaded => {
+        if (loaded) {
+          this.getRelations();
+          this.getStatisticsNumberOfConcepts();
+        }
+      });
+    });
   }
-  getMatchId(): void {
+
+  getMatchId(): Observable<void> {
     const _id = this.route.snapshot.paramMap.get('name');
     this.skillsMatch = [];
     this.fieldsMatch = [];
     this.transvSkillsMatch = [];
-     this.matchService
-      .getMatchById(_id)
-      .subscribe(profile => {
+    return this.matchService.getMatchById(_id).pipe(
+      map(profile => {
         this.selectedMatch = profile;
         this.skillsNotMatch1 = [];
         this.skillsNotMatch2 = [];
@@ -167,7 +160,7 @@ export class DetailComponent implements OnInit {
           });
         }
         this.transvSkillsMatch.sort();
-      });
+      }));
   }
 
   downloadResource(url: string) {
@@ -224,38 +217,14 @@ export class DetailComponent implements OnInit {
     this.allConcepts = this.bokService.getRelationsPrent(allRelations, allConcepts);
   }
 
-  getParent( concept ) {
-    let parentCode = '';
-    let parentNode = [];
-    let res = '';
-    this.allConcepts.forEach(con => {
-      if (con.code === concept) {
-        parentNode = con;
-        if ( parentNode['parent'] && parentNode['parent']['code'] && parentNode['parent']['code'] !== 'GIST') {
-          while (parentCode !== 'GIST' && parentNode['code'] !== 'GIST' ) {
-            if ( parentNode['parent']['parent'] ) {
-              parentNode = parentNode['parent'];
-              parentCode = parentNode['parent']['code'];
-            } else {
-              parentCode = 'GIST';
-            }
-          }
-        }  else if ( con.code === 'GIST' ) {
-          parentNode['code'] = 'GIST';
-        } else {
-          parentNode['code'] = con.code.slice(0, 2);
-        }
-      }
-    });
-    res = parentNode['code'] === 'GIST' ? concept : parentNode['code'];
-    return res;
-  }
-
   getStatisticsNumberOfConcepts() {
-    this.numberOfConcepts1 = this.getNumberOfConcepts( this.selectedMatch.resource1.concepts);
-    this.numberOfConcepts2 = this.getNumberOfConcepts( this.selectedMatch.resource2.concepts);
+    const resource1Concepts = new Array().concat(this.selectedMatch.notMatchConcepts1, this.selectedMatch.partialMatchConcepts1, this.selectedMatch.commonConcepts);
+    this.numberOfConcepts1 = this.getNumberOfConcepts(resource1Concepts);
+    console.log(resource1Concepts)
+    const resource2Concepts = new Array().concat(this.selectedMatch.notMatchConcepts2, this.selectedMatch.partialMatchConcepts2, this.selectedMatch.commonConcepts);
+    this.numberOfConcepts2 = this.getNumberOfConcepts(resource2Concepts);
     let numberCommonConcepts = [];
-    numberCommonConcepts = this.getNumberOfConcepts( this.selectedMatch.commonConcepts );
+    numberCommonConcepts = this.getNumberOfConcepts(this.selectedMatch.commonConcepts);
     this.statNumberOfConcepts1 = [];
     this.statNumberOfConcepts2 = [];
     let percentage1 = 0;
@@ -272,34 +241,18 @@ export class DetailComponent implements OnInit {
 
     });
   }
-  getNumberOfConcepts( conceptsToAnalize ) {
+  getNumberOfConcepts(conceptsToAnalize) {
     const numConcepts = [];
     let i = 0;
+
     conceptsToAnalize.forEach(bok1 => {
-      let parent = '';
-      if ( typeof  bok1 === 'string') {
-        const conc = bok1.split(']');
-        if ( conc[0][0] === '[' ) {
-          parent = this.getParent(conc[0].slice(1));
-        } else {
-          parent = this.getParent(bok1);
+      const codes = this.dijkstraService.getParents(bok1.code ? bok1.code : bok1);
+      codes.forEach( code => {
+        if (this.dijkstraService.getTreeNode(code).name !== undefined) {
+          i = numConcepts[code] !== undefined ? numConcepts[code] + 1 : 1;
+          numConcepts[code] = i;
         }
-        if ( this.kaCodes[parent] !== undefined) {
-          i = numConcepts[parent] !== undefined ? numConcepts[parent] + 1 : 1;
-          numConcepts[parent] = i ;
-        }
-      } else {
-        const conc = bok1.code.split(']');
-        if ( conc[0][0] === '[' ) {
-          parent = this.getParent(conc[0].slice(1));
-        } else {
-          parent = this.getParent(bok1.code);
-        }
-        if ( this.kaCodes[parent] !== undefined) {
-          i = numConcepts[parent] !== undefined ? numConcepts[parent] + 1 : 1;
-          numConcepts[parent] = i ;
-        }
-      }
+      });
     });
     return numConcepts;
   }
