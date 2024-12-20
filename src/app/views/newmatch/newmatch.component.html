@@ -46,14 +46,14 @@
                 </ng-template>
               </ng-select>
             </div>
-            <div class="col" *ngIf="!isAnonymous && userOrgs.length > 0">
+            <div class="col" *ngIf="isAnonymous || (!isAnonymous && userOrgs.length > 0)">
               <p class="text-primary text-right">Matching flexibility
                 <span
                   tooltip="Matching flexibility defines how strict the comparison is. A value of 0 allow only exact matches, while higher values allow partial matching of elements."
                   class="badge badge-primary badge-pill">i</span>
               </p>
             </div>
-            <div class="col" *ngIf="!isAnonymous && userOrgs.length > 0">
+            <div class="col" *ngIf="isAnonymous || (!isAnonymous && userOrgs.length > 0)">
               <input type="range" class="form-range" min="0" max="4"  [(ngModel)]="matchingFlexibility" (ngModelChange)="match()">
             </div>
             <div class="col text-right">
