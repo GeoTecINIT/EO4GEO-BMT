@@ -29,7 +29,7 @@ export class ResourceService {
   public traininMaterial = [];
   constructor(db: AngularFirestore,  public bokService: BokService, private http: HttpClient) {
     this.db = db;
-    this.getTrainingMaterials();
+    //this.getTrainingMaterials();
     this.getResources();
   }
 
