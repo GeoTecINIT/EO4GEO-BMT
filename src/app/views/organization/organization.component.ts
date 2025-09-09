@@ -130,13 +130,13 @@ export class OrganizationComponent implements OnInit {
   delete(orgIndex) {
     this.currentOrg = this.orgs[orgIndex];
 
-    this.deleteUserFromOrg(this.user, this.currentOrg);
+    this.deleteUserFromOrg(this.user, this.currentOrg, true);
 
     if (this.currentOrg.admin) {
       this.currentOrg.admin.forEach(adminId => {
         const userSubAdmin = this.userService.getUserById(adminId).subscribe(adminDB => {
           if (adminDB) {
-            this.deleteUserFromOrg(adminDB, this.currentOrg);
+            this.deleteUserFromOrg(adminDB, this.currentOrg, true);
           }
           userSubAdmin.unsubscribe();
         });
@@ -146,7 +146,7 @@ export class OrganizationComponent implements OnInit {
       this.currentOrg.regular.forEach(regularId => {
         const userSubReg = this.userService.getUserById(regularId).subscribe(regularDB => {
           if (regularDB) {
-            this.deleteUserFromOrg(regularDB, this.currentOrg);
+            this.deleteUserFromOrg(regularDB, this.currentOrg, true);
           }
           userSubReg.unsubscribe();
         });
@@ -156,7 +156,7 @@ export class OrganizationComponent implements OnInit {
       this.currentOrg.pending.forEach(pendingId => {
         const userSubPen = this.userService.getUserById(pendingId).subscribe(pendingDB => {
           if (pendingDB) {
-            this.deleteUserFromOrg(pendingDB, this.currentOrg);
+            this.deleteUserFromOrg(pendingDB, this.currentOrg, true);
           }
           userSubPen.unsubscribe();
         });
@@ -166,8 +166,8 @@ export class OrganizationComponent implements OnInit {
     this.organizationService.removeOrganization(this.currentOrg);
   }
 
-  deleteUserFromOrg(user, org) {
-    if (user && org && (org.admin.length > 1 || (org.admin.length == 1 && !org.admin.includes(user._id)))) {
+  deleteUserFromOrg(user, org, deleteOrg: boolean = false) {
+    if (user && org && (org.admin.length > 1 || deleteOrg || (org.admin.length == 1 && !org.admin.includes(user._id)))) {
       const indexToRemove = user.organizations.indexOf(org._id);
       if (indexToRemove !== -1) {
         user.organizations.splice(indexToRemove, 1);
