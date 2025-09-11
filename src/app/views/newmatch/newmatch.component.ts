@@ -331,6 +331,7 @@ export class NewmatchComponent implements OnInit {
         it.orgName.toLowerCase().includes(this.searchText2.toLowerCase()) ||
         (it.division ? (it.division.toLowerCase().includes(this.searchText2.toLowerCase())) : false)
     );
+    this.calculateMatchScore()
   }
 
   onFileChange1(event) {
@@ -966,6 +967,7 @@ export class NewmatchComponent implements OnInit {
       }
       this.type2 = type;
     }
+    this.calculateMatchScore()
   }
 
   deleteOtherRes(idOther) {
