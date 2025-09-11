@@ -522,6 +522,7 @@ export class NewmatchComponent implements OnInit {
 
   getTitle(meta) {
     let title = '';
+    if (meta && meta.info && meta.info.Title) return meta.info.Title;
     // concepts are in Subject metadata
     if (meta && meta.info && meta.info.Subject) {
       const rdf = meta.info.Subject.split(';');
