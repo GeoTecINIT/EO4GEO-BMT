@@ -1396,5 +1396,7 @@ export class NewmatchComponent implements OnInit {
     this.commonFields = [];
     this.commonSkills = [];
     this.commonTransversalSkills = [];
+    this.uploadPercent2 = null;
+    this.file2 = null;
   }
 }
