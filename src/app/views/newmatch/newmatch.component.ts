@@ -457,6 +457,7 @@ export class NewmatchComponent implements OnInit {
                 conceptsString, null, null, null, conceptsString, 3, null, 0);
               // do the matching
               this.match();
+              this.getStatisticsNumberOfConcepts();
               this.calculateMatchScore();
             }).catch(function (err) {
               console.log('Error getting meta data');
@@ -490,7 +491,6 @@ export class NewmatchComponent implements OnInit {
             const pdfDoc = pdfDoc_;
             pdfDoc.getMetadata().then(metadataObject => {
               this.meta2 = metadataObject;
-              console.log(this.meta2); // Metadata object here
               const title = this.getTitle(this.meta2);
               this.bokConcepts2 = this.getBokConceptsFromMeta(this.meta2);
               if (this.bokConcepts2.length === 0) {
@@ -504,6 +504,7 @@ export class NewmatchComponent implements OnInit {
                 this.collectionOT, true, true, title ? title : 'Not title', title ? title : 'Not title', '',
                 this.bokConcepts2, null, null, null, null, 3, null, 0);
               this.match();
+              this.getStatisticsNumberOfConcepts();
             }).catch(function (err) {
               console.log('Error getting meta data');
               console.log(err);
@@ -1305,8 +1306,8 @@ export class NewmatchComponent implements OnInit {
       this.commonSkills = [];
       this.commonTransversalSkills = [];
       this.buttonClear = 0;
-      this.getStatisticsNumberOfConcepts();
       this.match();
+      this.getStatisticsNumberOfConcepts();
     }
   }
 
@@ -1324,8 +1325,8 @@ export class NewmatchComponent implements OnInit {
       this.commonSkills = [];
       this.commonTransversalSkills = [];
       this.buttonClear = 0;
-      this.getStatisticsNumberOfConcepts();
       this.match();
+      this.getStatisticsNumberOfConcepts();
     }
   }
 
@@ -1334,8 +1335,8 @@ export class NewmatchComponent implements OnInit {
     this.bokConcepts1.splice(index, 1);
     this.resource1.concepts.splice(index, 1);
     this.notMatchConcepts1.splice(index, 1);
-    this.getStatisticsNumberOfConcepts();
     this.match();
+    this.getStatisticsNumberOfConcepts();
   }
 
   removeCustomConcept2(concept) {
@@ -1343,8 +1344,8 @@ export class NewmatchComponent implements OnInit {
     this.bokConcepts2.splice(index, 1);
     this.resource2.concepts.splice(index, 1);
     this.notMatchConcepts2.splice(index, 1);
-    this.getStatisticsNumberOfConcepts();
     this.match();
+    this.getStatisticsNumberOfConcepts();
   }
 
   calculateMatchScore() {
